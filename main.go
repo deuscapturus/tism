@@ -12,6 +12,7 @@ import (
 // hello world, the web server
 func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	//Grab the contents of the request.  Make sure we have a valid object.  If not return error
+	// curl -H "Content-Type: application/json" -X POST -d '{"Key":"xyz","GpgContents":"xyz"}' http://localhost:8080/
 	json := json.NewDecoder(req.Body)
 
 	type Request struct {
@@ -20,9 +21,9 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var r Request
-	decodedjson := json.Decode(&r)
+	json.Decode(&r)
 	w.Header().Set("Content-Type", "text/plain")
-	io.WriteString(w, decodedjson.Key)
+	io.WriteString(w, r.Key)
 }
 
 
