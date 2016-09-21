@@ -27,8 +27,15 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 
 	//TODO: if json fails return error with code 400
 	var r Request
-	json.Decode(&r)
-	w.Header().Set("Content-Type", "text/plain")
+	err := json.Decode(&r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("Content-Type", "text/plain")
+		io.WriteString(w, "Invalid Request")
+		log.Println(err)
+		return
+	}
+
 
 	//if r.Key is a valid jwt decrypt.
 	if r.Key == "xyz" {
@@ -36,7 +43,9 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Unauthorized")
+		return
 		//return error code 401
 	}
 }
