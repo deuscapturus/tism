@@ -10,9 +10,12 @@ import (
 	"bytes"
 	"golang.org/x/crypto/openpgp"
 	"io/ioutil"
+	"github.com/dgrijalva/jwt-go"
+	"time"
 )
 
 
+var SigningKey = []byte("sooFreakingsecret")
 // https://golang.org/pkg/net/http/#ServeMux.Handle
 // hello world, the web server
 
@@ -30,7 +33,6 @@ func DecryptSecret(s string) string {
 		log.Println(err)
 		return ""
 	}
-	//entity := entityList[0]
         dec, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		log.Println(err)
@@ -52,6 +54,36 @@ func DecryptSecret(s string) string {
 
 }
 
+func IssueJWT(w http.ResponseWriter, req *http.Request) {
+	//{
+	//  "scopes": [
+        //      "IDENTIFIEROFKEY1",
+        //      "IDENTIFIEROFKEY2",
+	//  ],
+	//  "exp": 1446056652,
+	//  "jti": "7e9c6a991f5a227fb7ebaa522536ae4c"
+	//}
+	// Create a new token object, specifying signing method and the claims
+	// you would like it to contain.
+	// curl http://localhost:8080/key
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"scopes": []string{
+			"IDENTIFIEROFKEY1",
+			"IDENTIFIEROFKEY2",
+		},
+		"exp": time.Now().Add(time.Hour * 1).Unix(),
+		"jti": "1234123412341234123412341234",
+	})
+
+	tokenString, err := token.SignedString(SigningKey)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "Unable to generate jwt token")
+	}
+	io.WriteString(w, tokenString)
+
+}
 
 func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	//Grab the contents of the request.  Make sure we have a valid object.  If not return error
@@ -75,7 +107,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Header().Set("Content-Type", "text/plain")
-		io.WriteString(w, "Invalid Request")
+		io.WriteString(w, "Invalid JSON in Request Body")
 		log.Println(err)
 		return
 	}
@@ -87,7 +119,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 		decrypted := DecryptSecret(r.GpgContents)
 		if decrypted == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			io.WriteString(w, "Invalid Request")
+			io.WriteString(w, "Unable to Decrypt Message")
 		} else {
 		io.WriteString(w, decrypted)
 		}
@@ -108,6 +140,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", HandleRequest)
+	http.HandleFunc("/key", IssueJWT)
 
 	log.Fatal(server.ListenAndServe())
 }
