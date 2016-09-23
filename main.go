@@ -1,3 +1,4 @@
+// Package POC API will decrypt and return a pgp encrypted message if the requester has a valid jwt token that lists the pgp decrpytion id in it's scope.
 package main
 
 import (
@@ -15,20 +16,11 @@ import (
 	"strconv"
 )
 
-
+// SigningKey to sign and validate the jwt
 var SigningKey = []byte("sooFreakingsecret")
-// https://golang.org/pkg/net/http/#ServeMux.Handle
-// hello world, the web server
 
-func IsKeyIDinIDSlice(id uint64, idslice []uint64) bool {
-	for _, i := range idslice {
-		if i == id {
-			return true
-		}
-	}
-	return false
-}
-
+// DecryptSecret decrypt the given string.
+// Do not return it if the decryption key is not in the k uint64 slice
 func DecryptSecret(s string, k []uint64) string {
 
 	//all taken from here https://gist.github.com/stuart-warren/93750a142d3de4e8fdd2
@@ -72,6 +64,7 @@ func DecryptSecret(s string, k []uint64) string {
 
 }
 
+// ValidateJWT validate string jwt and return true/false if valid along with a slice of uint64 pgp key id's.
 func ValidateJWT(t string) (bool, []uint64) {
 	type JwtClaimsMap struct {
 	    Keys []string `json:"scopes"`
@@ -100,18 +93,10 @@ func ValidateJWT(t string) (bool, []uint64) {
 	}
 }
 
+// IssueJWT return a valid jwt with these statically defined scope values.
+// This is only for testing.
 func IssueJWT(w http.ResponseWriter, req *http.Request) {
-	//{
-	//  "scopes": [
-	//      "IDENTIFIEROFKEY1",
-	//      "IDENTIFIEROFKEY2",
-	//  ],
-	//  "exp": 1446056652,
-	//  "jti": "7e9c6a991f5a227fb7ebaa522536ae4c"
-	//}
-	// Create a new token object, specifying signing method and the claims
-	// you would like it to contain.
-	// curl http://localhost:8080/key
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"scopes": []string{
 			"4ceaf7b0e5e4040c",
@@ -131,6 +116,7 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) {
 
 }
 
+// HandleRequest the route for all decryption requests
 func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	//Grab the contents of the request.  Make sure we have a valid object.  If not return error
 	// Encrypt a message
@@ -139,7 +125,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 
 	// Decrypt that message
 	// ====================
-	// curl -H "Content-Type: application/json" -X POST -d '{"Key":"`curl http://localhost:8080/key`","GpgContents":"hQEMA5siECpJxYMfAQf8D3+/slhHH47advUt+J8UZaQhP+fXiwR/R/GHalti3mFg6GknMIr7lKbxitGMsBFkTn+Qt1Mp0EuM+Z/suG1Jl+ppZ3WD5KjoBjZbDB8JYQw9aqPhQ/gl/M0GMwrZeyIUbHhtTUaEGZz53lcVWec6HItyGhEW3Lhv9MwciX4CvYp6aj3bJ6XLLfvTZe0qFBibMx8/VYX2gaJLZTC4kkTs7JXDVSzjGRKITnlVCUt+Qb8t8NkC/MzDH5xHZEts+KOy7TF5AQ7LBJ5mJL3X0WJtnnA7MSFFHABiT5/0Oa+SsH2aCv3AOb8l7FipVLxC3oJEbdEyp8eMMr54+pWDRRoreNJNAZMa2Fyt4wsDEbm6gsQzjjJ7e2Lj8osnDfiLalIEgczYHkkMpUaqNWlb+ErEUewKuMYahNg49op5RGu+8J+S+8cEJb2cWNdlLoi3kME="}"}' http://localhost:8080/
+	// curl -H "Content-Type: application/json" -X POST -d '{"Key":"`curl -s http://localhost:8080/key`","GpgContents":"hQEMA5siECpJxYMfAQf8D3+/slhHH47advUt+J8UZaQhP+fXiwR/R/GHalti3mFg6GknMIr7lKbxitGMsBFkTn+Qt1Mp0EuM+Z/suG1Jl+ppZ3WD5KjoBjZbDB8JYQw9aqPhQ/gl/M0GMwrZeyIUbHhtTUaEGZz53lcVWec6HItyGhEW3Lhv9MwciX4CvYp6aj3bJ6XLLfvTZe0qFBibMx8/VYX2gaJLZTC4kkTs7JXDVSzjGRKITnlVCUt+Qb8t8NkC/MzDH5xHZEts+KOy7TF5AQ7LBJ5mJL3X0WJtnnA7MSFFHABiT5/0Oa+SsH2aCv3AOb8l7FipVLxC3oJEbdEyp8eMMr54+pWDRRoreNJNAZMa2Fyt4wsDEbm6gsQzjjJ7e2Lj8osnDfiLalIEgczYHkkMpUaqNWlb+ErEUewKuMYahNg49op5RGu+8J+S+8cEJb2cWNdlLoi3kME="}"}' http://localhost:8080/
 	json := json.NewDecoder(req.Body)
 
 	type Request struct {
@@ -147,7 +133,6 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 		GpgContents string
 	}
 
-	//TODO: Validate that the json keys Key and GpgConents exist in the json else return 400.
 	var r Request
 	err := json.Decode(&r)
 	if err != nil {
@@ -159,8 +144,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	}
 
 
-	//if r.Key is a valid jwt decrypt.
-	//Validate Key
+	//Validate JWT
 	jwtvalid, gpgkeys := ValidateJWT(r.Key)
 	if jwtvalid {
 		w.Header().Set("Content-Type", "text/plain")
@@ -173,15 +157,15 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 		}
 
 	} else {
+		// Return 404 if JWT is not valid
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Unauthorized")
 		return
-		//return error code 401
 	}
 }
 
-
+// main function.  Start http server and provide routes.
 func main() {
 	server := http.Server{
 		Addr: ":8080",
