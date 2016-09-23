@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"github.com/dgrijalva/jwt-go"
 	"time"
+	"strconv"
 )
 
 
@@ -72,8 +73,12 @@ func DecryptSecret(s string, k []uint64) string {
 }
 
 func ValidateJWT(t string) (bool, []uint64) {
+	type JwtClaimsMap struct {
+	    Keys []string `json:"scopes"`
+	    jwt.StandardClaims
+	}
 	//Validate jwt and return true or false plus a list of gpg private keys the requester has permission to.
-	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(t, &JwtClaimsMap{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(SigningKey), nil
 	})
 	if err != nil {
@@ -81,7 +86,15 @@ func ValidateJWT(t string) (bool, []uint64) {
 		return false, []uint64{0x000000}
 	}
 	if token.Valid {
-		return true, []uint64{0x4ceaf7b0e5e4040c,0x4ceaf7b0e5e4040d,}
+		var claims []uint64
+		for _, j := range token.Claims.(*JwtClaimsMap).Keys {
+			j, err :=  strconv.ParseUint(j, 16, 64)
+			if err != nil {
+				log.Println(err)
+			}
+			claims = append(claims, j)
+		}
+		return true, claims
 	} else {
 		return false, []uint64{0x000000}
 	}
@@ -100,9 +113,9 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) {
 	// you would like it to contain.
 	// curl http://localhost:8080/key
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"scopes": []uint64{
-			0x4ceaf7b0e5e4040c,
-			0x4ceaf7b0e5e4040d,
+		"scopes": []string{
+			"4ceaf7b0e5e4040c",
+			"4ceaf7b0e5e4040d",
 		},
 		"exp": time.Now().Add(time.Hour * 1).Unix(),
 		"jti": "1234123412341234123412341234",
