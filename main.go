@@ -127,7 +127,7 @@ func PubEntToAsciiArmor(pubEnt *openpgp.Entity) (asciiEntity string) {
     return
 }
 
-// ListPGPKeys return json list of keys with metadata including id
+// ListPGPKeys return json list of keys with metadata including id.
 func ListPGPKeys(w http.ResponseWriter, req *http.Request) {
 
 	//TODO: Authenticate user maybe?
@@ -220,15 +220,27 @@ curl -H "Content-Type: application/json" -X POST -d '{"Key":"asdf", "Name":"test
 }
 
 // IssueJWT return a valid jwt with these statically defined scope values.
-// This is only for testing.
 func IssueJWT(w http.ResponseWriter, req *http.Request) {
 
+	JsonDecode := json.NewDecoder(req.Body)
+
+	type RequestNewJWT struct {
+		Key string
+		Scope []string
+	}
+
+	var r RequestNewJWT
+	err := JsonDecode.Decode(&r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("Content-Type", "text/plain")
+		io.WriteString(w, "Invalid JSON in Request Body")
+		log.Println(err)
+		return
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"scopes": []string{
-			"4ceaf7b0e5e4040c",
-			"4ceaf7b0e5e4040d",
-			"8b3a8899b08ee628",
-		},
+		"scopes": r.Scope,
 		"exp": time.Now().Add(time.Hour * 1).Unix(),
 		"jti": "1234123412341234123412341234",
 	})
