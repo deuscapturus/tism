@@ -137,7 +137,6 @@ func ListPGPKeys(w http.ResponseWriter, req *http.Request) {
         // Return the id and pub key in json
 
 	for _, entity := range GetKeyRing() {
-		//var m map[string]string
 		m := make(map[string]string)
 		m["CreationTime"] = entity.PrimaryKey.CreationTime.String()
 		m["Id"] = strconv.FormatUint(entity.PrimaryKey.KeyId, 16)
@@ -146,7 +145,6 @@ func ListPGPKeys(w http.ResponseWriter, req *http.Request) {
 		}
 		list = append(list, m)
 	}
-	log.Println(list)
 
         w.Header().Set("Content-Type", "text/json")
         JsonEncode.Encode(list)
