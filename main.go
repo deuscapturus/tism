@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"bytes"
 	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/armor"
 	"io/ioutil"
 	"github.com/dgrijalva/jwt-go"
 	"time"
@@ -93,6 +94,93 @@ func ValidateJWT(t string) (bool, []uint64) {
 	}
 }
 
+//Create ASscii Armor from openpgp.Entity
+func PubEntToAsciiArmor(pubEnt *openpgp.Entity) (asciiEntity string) {
+    gotWriter := bytes.NewBuffer(nil)
+    wr, err := armor.Encode(gotWriter, openpgp.PublicKeyType, nil)
+    if err != nil {
+        log.Println(err)
+        return
+    }
+    if pubEnt.Serialize(wr) != nil {
+        log.Println(err)
+    }
+    if wr.Close() != nil {
+        log.Println(err)
+    }
+    asciiEntity = gotWriter.String()
+    return
+}
+
+// GeneratePGPKey will create a new private/public gpg key pair
+// and return the private key id and public key.
+func GeneratePGPKey(w http.ResponseWriter, req *http.Request) {
+/*
+Create New PGP Key
+==================
+curl -H "Content-Type: application/json" -X POST -d '{"Key":"asdf", "Name":"testkey", "Comment":"test comment","Email":"test@key.test"}' http://localhost:8080/createpgp
+*/
+        JsonDecode := json.NewDecoder(req.Body)
+
+        type RequestNewPGP struct {
+                Key string
+                Name string
+		Comment string
+		Email string
+        }
+
+        var r RequestNewPGP
+        err := JsonDecode.Decode(&r)
+        if err != nil {
+                w.WriteHeader(http.StatusBadRequest)
+                w.Header().Set("Content-Type", "text/plain")
+                io.WriteString(w, "Invalid JSON in Request Body")
+                log.Println(err)
+                return
+        }
+
+	//TODO: Some authentication needed
+	NewEntity, err := openpgp.NewEntity(r.Name, r.Comment, r.Email, nil)
+        if err != nil {
+                w.WriteHeader(http.StatusBadRequest)
+                w.Header().Set("Content-Type", "text/plain")
+                io.WriteString(w, "Unable to create PGP key based on input")
+                log.Println(err)
+                return
+        }
+
+	f, err := os.OpenFile("./gpgkeys/secring.gpg", os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+                log.Println(err)
+		return
+	}
+
+	NewEntity.SerializePrivate(f, nil)
+	if err != nil {
+                log.Println(err)
+		return
+	}
+	if f.Close() != nil {
+                log.Println(err)
+		return
+	}
+
+        type ReturnNewPGP struct {
+                Id string
+                PubKey string
+        }
+
+	// Return the id and pub key in json
+	JsonEncode := json.NewEncoder(w)
+
+	NewEntityId := strconv.FormatUint(NewEntity.PrimaryKey.KeyId, 16) 
+	NewEntityPublicKey := PubEntToAsciiArmor(NewEntity)
+
+        w.Header().Set("Content-Type", "text/json")
+	p := &ReturnNewPGP{NewEntityId, NewEntityPublicKey}
+	JsonEncode.Encode(*p)
+}
+
 // IssueJWT return a valid jwt with these statically defined scope values.
 // This is only for testing.
 func IssueJWT(w http.ResponseWriter, req *http.Request) {
@@ -101,6 +189,7 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) {
 		"scopes": []string{
 			"4ceaf7b0e5e4040c",
 			"4ceaf7b0e5e4040d",
+			"8b3a8899b08ee628",
 		},
 		"exp": time.Now().Add(time.Hour * 1).Unix(),
 		"jti": "1234123412341234123412341234",
@@ -118,22 +207,23 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) {
 
 // HandleRequest the route for all decryption requests
 func HandleRequest(w http.ResponseWriter, req *http.Request) {
-	//Grab the contents of the request.  Make sure we have a valid object.  If not return error
-	// Encrypt a message
-	// =================
-	// echo -n "this was encrypted" | gpg --batch --trust-model always --encrypt -r "Test Accounting <test@fakedomain.com>" --homedir ./gpgkeys/ | base64 -w 0
+/*
+Encrypt a message
+=================
+echo -n "this was encrypted" | gpg --batch --trust-model always --encrypt -r "Test Accounting <test@fakedomain.com>" --homedir ./gpgkeys/ | base64 -w 0
 
-	// Decrypt that message
-	// ====================
-	// curl -H "Content-Type: application/json" -X POST -d '{"Key":"`curl -s http://localhost:8080/key`","GpgContents":"hQEMA5siECpJxYMfAQf8D3+/slhHH47advUt+J8UZaQhP+fXiwR/R/GHalti3mFg6GknMIr7lKbxitGMsBFkTn+Qt1Mp0EuM+Z/suG1Jl+ppZ3WD5KjoBjZbDB8JYQw9aqPhQ/gl/M0GMwrZeyIUbHhtTUaEGZz53lcVWec6HItyGhEW3Lhv9MwciX4CvYp6aj3bJ6XLLfvTZe0qFBibMx8/VYX2gaJLZTC4kkTs7JXDVSzjGRKITnlVCUt+Qb8t8NkC/MzDH5xHZEts+KOy7TF5AQ7LBJ5mJL3X0WJtnnA7MSFFHABiT5/0Oa+SsH2aCv3AOb8l7FipVLxC3oJEbdEyp8eMMr54+pWDRRoreNJNAZMa2Fyt4wsDEbm6gsQzjjJ7e2Lj8osnDfiLalIEgczYHkkMpUaqNWlb+ErEUewKuMYahNg49op5RGu+8J+S+8cEJb2cWNdlLoi3kME="}"}' http://localhost:8080/
+Decrypt that message
+====================
+curl -H "Content-Type: application/json" -X POST -d '{"Key":"`curl -s http://localhost:8080/key`","GpgContents":"hQEMA5siECpJxYMfAQf8D3+/slhHH47advUt+J8UZaQhP+fXiwR/R/GHalti3mFg6GknMIr7lKbxitGMsBFkTn+Qt1Mp0EuM+Z/suG1Jl+ppZ3WD5KjoBjZbDB8JYQw9aqPhQ/gl/M0GMwrZeyIUbHhtTUaEGZz53lcVWec6HItyGhEW3Lhv9MwciX4CvYp6aj3bJ6XLLfvTZe0qFBibMx8/VYX2gaJLZTC4kkTs7JXDVSzjGRKITnlVCUt+Qb8t8NkC/MzDH5xHZEts+KOy7TF5AQ7LBJ5mJL3X0WJtnnA7MSFFHABiT5/0Oa+SsH2aCv3AOb8l7FipVLxC3oJEbdEyp8eMMr54+pWDRRoreNJNAZMa2Fyt4wsDEbm6gsQzjjJ7e2Lj8osnDfiLalIEgczYHkkMpUaqNWlb+ErEUewKuMYahNg49op5RGu+8J+S+8cEJb2cWNdlLoi3kME="}"}' http://localhost:8080/
+*/
 	json := json.NewDecoder(req.Body)
 
-	type Request struct {
+	type RequestDecrypt struct {
 		Key string
 		GpgContents string
 	}
 
-	var r Request
+	var r RequestDecrypt
 	err := json.Decode(&r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -173,6 +263,6 @@ func main() {
 
 	http.HandleFunc("/", HandleRequest)
 	http.HandleFunc("/key", IssueJWT)
-
+	http.HandleFunc("/createpgp", GeneratePGPKey)
 	log.Fatal(server.ListenAndServe())
 }
