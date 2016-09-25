@@ -31,7 +31,7 @@ func DecryptSecret(s string, k []uint64) string {
 		log.Println(err)
 		return ""
 	}
-        dec, err := base64.StdEncoding.DecodeString(s)
+	dec, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		log.Println(err)
 		return ""
@@ -94,22 +94,65 @@ func ValidateJWT(t string) (bool, []uint64) {
 	}
 }
 
+func GetKeyRing() (entityList []*openpgp.Entity) {
+	// Get PGP Encryption Keys
+	keyringFileBuffer, err := os.Open("./gpgkeys/secring.gpg")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	entityList, err = openpgp.ReadKeyRing(keyringFileBuffer)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	return
+
+}
 //Create ASscii Armor from openpgp.Entity
 func PubEntToAsciiArmor(pubEnt *openpgp.Entity) (asciiEntity string) {
     gotWriter := bytes.NewBuffer(nil)
     wr, err := armor.Encode(gotWriter, openpgp.PublicKeyType, nil)
     if err != nil {
-        log.Println(err)
-        return
+	log.Println(err)
+	return
     }
     if pubEnt.Serialize(wr) != nil {
-        log.Println(err)
+	log.Println(err)
     }
     if wr.Close() != nil {
-        log.Println(err)
+	log.Println(err)
     }
     asciiEntity = gotWriter.String()
     return
+}
+
+// ListPGPKeys return json list of keys with metadata including id
+func ListPGPKeys(w http.ResponseWriter, req *http.Request) {
+
+	//TODO: Authenticate user maybe?
+
+	var list []map[string]string
+	JsonEncode := json.NewEncoder(w)
+        // Return the id and pub key in json
+
+	for _, entity := range GetKeyRing() {
+		//var m map[string]string
+		m := make(map[string]string)
+		m["CreationTime"] = entity.PrimaryKey.CreationTime.String()
+		m["Id"] = strconv.FormatUint(entity.PrimaryKey.KeyId, 16)
+		for Name, _ := range entity.Identities {
+			m["Name"] = Name
+		}
+		list = append(list, m)
+	}
+	log.Println(list)
+
+        w.Header().Set("Content-Type", "text/json")
+        JsonEncode.Encode(list)
+
+
+	//iJsonEncode := json.NewEncoder(w)
 }
 
 // GeneratePGPKey will create a new private/public gpg key pair
@@ -120,55 +163,55 @@ Create New PGP Key
 ==================
 curl -H "Content-Type: application/json" -X POST -d '{"Key":"asdf", "Name":"testkey", "Comment":"test comment","Email":"test@key.test"}' http://localhost:8080/createpgp
 */
-        JsonDecode := json.NewDecoder(req.Body)
+	JsonDecode := json.NewDecoder(req.Body)
 
-        type RequestNewPGP struct {
-                Key string
-                Name string
+	type RequestNewPGP struct {
+		Key string
+		Name string
 		Comment string
 		Email string
-        }
+	}
 
-        var r RequestNewPGP
-        err := JsonDecode.Decode(&r)
-        if err != nil {
-                w.WriteHeader(http.StatusBadRequest)
-                w.Header().Set("Content-Type", "text/plain")
-                io.WriteString(w, "Invalid JSON in Request Body")
-                log.Println(err)
-                return
-        }
+	var r RequestNewPGP
+	err := JsonDecode.Decode(&r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("Content-Type", "text/plain")
+		io.WriteString(w, "Invalid JSON in Request Body")
+		log.Println(err)
+		return
+	}
 
 	//TODO: Some authentication needed
 	NewEntity, err := openpgp.NewEntity(r.Name, r.Comment, r.Email, nil)
-        if err != nil {
-                w.WriteHeader(http.StatusBadRequest)
-                w.Header().Set("Content-Type", "text/plain")
-                io.WriteString(w, "Unable to create PGP key based on input")
-                log.Println(err)
-                return
-        }
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("Content-Type", "text/plain")
+		io.WriteString(w, "Unable to create PGP key based on input")
+		log.Println(err)
+		return
+	}
 
 	f, err := os.OpenFile("./gpgkeys/secring.gpg", os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
-                log.Println(err)
+		log.Println(err)
 		return
 	}
 
 	NewEntity.SerializePrivate(f, nil)
 	if err != nil {
-                log.Println(err)
+		log.Println(err)
 		return
 	}
 	if f.Close() != nil {
-                log.Println(err)
+		log.Println(err)
 		return
 	}
 
-        type ReturnNewPGP struct {
-                Id string
-                PubKey string
-        }
+	type ReturnNewPGP struct {
+		Id string
+		PubKey string
+	}
 
 	// Return the id and pub key in json
 	JsonEncode := json.NewEncoder(w)
@@ -176,7 +219,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"Key":"asdf", "Name":"test
 	NewEntityId := strconv.FormatUint(NewEntity.PrimaryKey.KeyId, 16) 
 	NewEntityPublicKey := PubEntToAsciiArmor(NewEntity)
 
-        w.Header().Set("Content-Type", "text/json")
+	w.Header().Set("Content-Type", "text/json")
 	p := &ReturnNewPGP{NewEntityId, NewEntityPublicKey}
 	JsonEncode.Encode(*p)
 }
@@ -264,5 +307,6 @@ func main() {
 	http.HandleFunc("/", HandleRequest)
 	http.HandleFunc("/key", IssueJWT)
 	http.HandleFunc("/createpgp", GeneratePGPKey)
+	http.HandleFunc("/listpgp", ListPGPKeys)
 	log.Fatal(server.ListenAndServe())
 }
