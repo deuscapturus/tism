@@ -150,9 +150,6 @@ func ListPGPKeys(w http.ResponseWriter, req *http.Request) {
 
         w.Header().Set("Content-Type", "text/json")
         JsonEncode.Encode(list)
-
-
-	//iJsonEncode := json.NewEncoder(w)
 }
 
 // GeneratePGPKey will create a new private/public gpg key pair
@@ -304,6 +301,7 @@ func main() {
 		Addr: ":8080",
 	}
 
+	//Routes
 	http.HandleFunc("/", HandleRequest)
 	http.HandleFunc("/key", IssueJWT)
 	http.HandleFunc("/createpgp", GeneratePGPKey)
