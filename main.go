@@ -2,19 +2,19 @@
 package main
 
 import (
-	"io"
-	"net/http"
-	"log"
-	"encoding/json"
-	"os"
-	"encoding/base64"
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
+	"io"
 	"io/ioutil"
-	"github.com/dgrijalva/jwt-go"
-	"time"
+	"log"
+	"net/http"
+	"os"
 	"strconv"
+	"time"
 )
 
 // SigningKey to sign and validate the jwt
@@ -62,14 +62,13 @@ func DecryptSecret(s string, k []uint64) string {
 	}
 	return ""
 
-
 }
 
 // ValidateJWT validate string jwt and return true/false if valid along with a slice of uint64 pgp key id's.
 func ValidateJWT(t string) (bool, []uint64) {
 	type JwtClaimsMap struct {
-	    Keys []string `json:"scopes"`
-	    jwt.StandardClaims
+		Keys []string `json:"scopes"`
+		jwt.StandardClaims
 	}
 	//Validate jwt and return true or false plus a list of gpg private keys the requester has permission to.
 	token, err := jwt.ParseWithClaims(t, &JwtClaimsMap{}, func(token *jwt.Token) (interface{}, error) {
@@ -82,7 +81,7 @@ func ValidateJWT(t string) (bool, []uint64) {
 	if token.Valid {
 		var claims []uint64
 		for _, j := range token.Claims.(*JwtClaimsMap).Keys {
-			j, err :=  strconv.ParseUint(j, 16, 64)
+			j, err := strconv.ParseUint(j, 16, 64)
 			if err != nil {
 				log.Println(err)
 			}
@@ -109,22 +108,23 @@ func GetKeyRing() (entityList []*openpgp.Entity) {
 	return
 
 }
+
 //Create ASscii Armor from openpgp.Entity
 func PubEntToAsciiArmor(pubEnt *openpgp.Entity) (asciiEntity string) {
-    gotWriter := bytes.NewBuffer(nil)
-    wr, err := armor.Encode(gotWriter, openpgp.PublicKeyType, nil)
-    if err != nil {
-	log.Println(err)
+	gotWriter := bytes.NewBuffer(nil)
+	wr, err := armor.Encode(gotWriter, openpgp.PublicKeyType, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if pubEnt.Serialize(wr) != nil {
+		log.Println(err)
+	}
+	if wr.Close() != nil {
+		log.Println(err)
+	}
+	asciiEntity = gotWriter.String()
 	return
-    }
-    if pubEnt.Serialize(wr) != nil {
-	log.Println(err)
-    }
-    if wr.Close() != nil {
-	log.Println(err)
-    }
-    asciiEntity = gotWriter.String()
-    return
 }
 
 // ListPGPKeys return json list of keys with metadata including id.
@@ -134,7 +134,7 @@ func ListPGPKeys(w http.ResponseWriter, req *http.Request) {
 
 	var list []map[string]string
 	JsonEncode := json.NewEncoder(w)
-        // Return the id and pub key in json
+	// Return the id and pub key in json
 
 	for _, entity := range GetKeyRing() {
 		m := make(map[string]string)
@@ -146,25 +146,25 @@ func ListPGPKeys(w http.ResponseWriter, req *http.Request) {
 		list = append(list, m)
 	}
 
-        w.Header().Set("Content-Type", "text/json")
-        JsonEncode.Encode(list)
+	w.Header().Set("Content-Type", "text/json")
+	JsonEncode.Encode(list)
 }
 
 // GeneratePGPKey will create a new private/public gpg key pair
 // and return the private key id and public key.
 func GeneratePGPKey(w http.ResponseWriter, req *http.Request) {
-/*
-Create New PGP Key
-==================
-curl -H "Content-Type: application/json" -X POST -d '{"Key":"asdf", "Name":"testkey", "Comment":"test comment","Email":"test@key.test"}' http://localhost:8080/createpgp
-*/
+	/*
+	   Create New PGP Key
+	   ==================
+	   curl -H "Content-Type: application/json" -X POST -d '{"Key":"asdf", "Name":"testkey", "Comment":"test comment","Email":"test@key.test"}' http://localhost:8080/createpgp
+	*/
 	JsonDecode := json.NewDecoder(req.Body)
 
 	type RequestNewPGP struct {
-		Key string
-		Name string
+		Key     string
+		Name    string
 		Comment string
-		Email string
+		Email   string
 	}
 
 	var r RequestNewPGP
@@ -204,14 +204,14 @@ curl -H "Content-Type: application/json" -X POST -d '{"Key":"asdf", "Name":"test
 	}
 
 	type ReturnNewPGP struct {
-		Id string
+		Id     string
 		PubKey string
 	}
 
 	// Return the id and pub key in json
 	JsonEncode := json.NewEncoder(w)
 
-	NewEntityId := strconv.FormatUint(NewEntity.PrimaryKey.KeyId, 16) 
+	NewEntityId := strconv.FormatUint(NewEntity.PrimaryKey.KeyId, 16)
 	NewEntityPublicKey := PubEntToAsciiArmor(NewEntity)
 
 	w.Header().Set("Content-Type", "text/json")
@@ -225,7 +225,7 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) {
 	JsonDecode := json.NewDecoder(req.Body)
 
 	type RequestNewJWT struct {
-		Key string
+		Key   string
 		Scope []string
 	}
 
@@ -241,8 +241,8 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"scopes": r.Scope,
-		"exp": time.Now().Add(time.Hour * 1).Unix(),
-		"jti": "1234123412341234123412341234",
+		"exp":    time.Now().Add(time.Hour * 1).Unix(),
+		"jti":    "1234123412341234123412341234",
 	})
 
 	tokenString, err := token.SignedString(SigningKey)
@@ -257,19 +257,19 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) {
 
 // HandleRequest the route for all decryption requests
 func HandleRequest(w http.ResponseWriter, req *http.Request) {
-/*
-Encrypt a message
-=================
-echo -n "this was encrypted" | gpg --batch --trust-model always --encrypt -r "Test Accounting <test@fakedomain.com>" --homedir ./gpgkeys/ | base64 -w 0
+	/*
+	   Encrypt a message
+	   =================
+	   echo -n "this was encrypted" | gpg --batch --trust-model always --encrypt -r "Test Accounting <test@fakedomain.com>" --homedir ./gpgkeys/ | base64 -w 0
 
-Decrypt that message
-====================
-curl -H "Content-Type: application/json" -X POST -d '{"Key":"`curl -s http://localhost:8080/key`","GpgContents":"hQEMA5siECpJxYMfAQf8D3+/slhHH47advUt+J8UZaQhP+fXiwR/R/GHalti3mFg6GknMIr7lKbxitGMsBFkTn+Qt1Mp0EuM+Z/suG1Jl+ppZ3WD5KjoBjZbDB8JYQw9aqPhQ/gl/M0GMwrZeyIUbHhtTUaEGZz53lcVWec6HItyGhEW3Lhv9MwciX4CvYp6aj3bJ6XLLfvTZe0qFBibMx8/VYX2gaJLZTC4kkTs7JXDVSzjGRKITnlVCUt+Qb8t8NkC/MzDH5xHZEts+KOy7TF5AQ7LBJ5mJL3X0WJtnnA7MSFFHABiT5/0Oa+SsH2aCv3AOb8l7FipVLxC3oJEbdEyp8eMMr54+pWDRRoreNJNAZMa2Fyt4wsDEbm6gsQzjjJ7e2Lj8osnDfiLalIEgczYHkkMpUaqNWlb+ErEUewKuMYahNg49op5RGu+8J+S+8cEJb2cWNdlLoi3kME="}"}' http://localhost:8080/
-*/
+	   Decrypt that message
+	   ====================
+	   curl -H "Content-Type: application/json" -X POST -d '{"Key":"`curl -s http://localhost:8080/key`","GpgContents":"hQEMA5siECpJxYMfAQf8D3+/slhHH47advUt+J8UZaQhP+fXiwR/R/GHalti3mFg6GknMIr7lKbxitGMsBFkTn+Qt1Mp0EuM+Z/suG1Jl+ppZ3WD5KjoBjZbDB8JYQw9aqPhQ/gl/M0GMwrZeyIUbHhtTUaEGZz53lcVWec6HItyGhEW3Lhv9MwciX4CvYp6aj3bJ6XLLfvTZe0qFBibMx8/VYX2gaJLZTC4kkTs7JXDVSzjGRKITnlVCUt+Qb8t8NkC/MzDH5xHZEts+KOy7TF5AQ7LBJ5mJL3X0WJtnnA7MSFFHABiT5/0Oa+SsH2aCv3AOb8l7FipVLxC3oJEbdEyp8eMMr54+pWDRRoreNJNAZMa2Fyt4wsDEbm6gsQzjjJ7e2Lj8osnDfiLalIEgczYHkkMpUaqNWlb+ErEUewKuMYahNg49op5RGu+8J+S+8cEJb2cWNdlLoi3kME="}"}' http://localhost:8080/
+	*/
 	json := json.NewDecoder(req.Body)
 
 	type RequestDecrypt struct {
-		Key string
+		Key         string
 		GpgContents string
 	}
 
@@ -283,7 +283,6 @@ curl -H "Content-Type: application/json" -X POST -d '{"Key":"`curl -s http://loc
 		return
 	}
 
-
 	//Validate JWT
 	jwtvalid, gpgkeys := ValidateJWT(r.Key)
 	if jwtvalid {
@@ -293,7 +292,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"Key":"`curl -s http://loc
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, "Unable to Decrypt Message")
 		} else {
-		io.WriteString(w, decrypted)
+			io.WriteString(w, decrypted)
 		}
 
 	} else {
