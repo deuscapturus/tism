@@ -122,7 +122,7 @@ func ValidateJWT(t string) (bool, []uint64) {
 }
 
 // GetKeyRing return pgp keyring from a file location
-func GetKeyRing() (EntityList []*openpgp.Entity) {
+func GetKeyRing() (EntityList openpgp.EntityList) {
 
 	KeyringFileBuffer, err := os.Open("./gpgkeys/secring.gpg")
 	if err != nil {
