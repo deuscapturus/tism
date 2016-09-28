@@ -41,6 +41,7 @@ import (
 
 // SigningKey to sign and validate the jwt
 var SigningKey = []byte("sooFreakingsecret")
+var KeyRingFilePath = string("./gpgkeys/secring.gpg")
 
 // main function.  Start http server and provide routes.
 func main() {
@@ -124,10 +125,21 @@ func ValidateJWT(t string) (bool, []uint64) {
 // GetKeyRing return pgp keyring from a file location
 func GetKeyRing() (EntityList openpgp.EntityList) {
 
-	KeyringFileBuffer, err := os.Open("./gpgkeys/secring.gpg")
-	if err != nil {
-		log.Println(err)
-		return
+	_, err := os.Stat(KeyRingFilePath)
+	var KeyringFileBuffer *os.File
+
+	if os.IsNotExist(err) {
+		KeyringFileBuffer, err = os.Create(KeyRingFilePath)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+	} else {
+		KeyringFileBuffer, err = os.Open(KeyRingFilePath)
+		if err != nil {
+			log.Println(err)
+			return
+		}
 	}
 
 	EntityList, err = openpgp.ReadKeyRing(KeyringFileBuffer)
@@ -217,7 +229,9 @@ func GeneratePGPKey(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	f, err := os.OpenFile("./gpgkeys/secring.gpg", os.O_APPEND|os.O_WRONLY, 0600)
+	GetKeyRing()
+
+	f, err := os.OpenFile(KeyRingFilePath, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		log.Println(err)
 		return
