@@ -37,14 +37,25 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"github.com/go-yaml/yaml"
 )
 
 // SigningKey to sign and validate the jwt
 var SigningKey = []byte("sooFreakingsecret")
 var KeyRingFilePath = string("./gpgkeys/secring.gpg")
+var ConfigFilePath = string("./config.yaml")
+
+type Configuration struct {
+	Port int `yaml:"port,omitempty"`
+	RevokedJWTs []string `yaml:"revoked_api_keys,omitempty"`
+}
 
 // main function.  Start http server and provide routes.
 func main() {
+
+	Config := Configuration{}
+	Config.LoadConfiguration(ConfigFilePath)
+
 	server := http.Server{
 		Addr: ":8080",
 	}
@@ -55,6 +66,19 @@ func main() {
 	http.HandleFunc("/createpgp", GeneratePGPKey)
 	http.HandleFunc("/listpgp", ListPGPKeys)
 	log.Fatal(server.ListenAndServe())
+}
+
+func (Config *Configuration) LoadConfiguration(ConfigPath string) {
+
+        ConfigFileBytes, err := ioutil.ReadFile(ConfigPath)
+        if err != nil {
+                log.Println(err)
+        }
+        err = yaml.Unmarshal(ConfigFileBytes, &Config)
+        if err != nil {
+                log.Println(err)
+        }
+	return
 }
 
 // DecryptSecret decrypt the given string.
