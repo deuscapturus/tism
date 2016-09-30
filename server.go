@@ -50,10 +50,11 @@ type Configuration struct {
 	RevokedJWTs []string `yaml:"revoked_api_keys,omitempty"`
 }
 
+var Config = Configuration{}
+
 // main function.  Start http server and provide routes.
 func main() {
 
-	Config := Configuration{}
 	Config.LoadConfiguration(ConfigFilePath)
 
 	server := http.Server{
@@ -121,6 +122,7 @@ func ValidateJWT(t string) (bool, []uint64) {
 
 	type JwtClaimsMap struct {
 		Keys []string `json:"scopes"`
+		JWTid string `json:"jti"`
 		jwt.StandardClaims
 	}
 	//Validate jwt and return true or false plus a list of gpg private keys the requester has permission to.
@@ -129,8 +131,14 @@ func ValidateJWT(t string) (bool, []uint64) {
 	})
 	if err != nil {
 		log.Println(err)
-		return false, []uint64{0x000000}
+		return false, []uint64{0}
 	}
+
+	if StringInSlice(token.Claims.(*JwtClaimsMap).JWTid, Config.RevokedJWTs) {
+		log.Println("JWT Revoked")
+		return false, []uint64{0}
+	}
+
 	if token.Valid {
 		var claims []uint64
 		for _, j := range token.Claims.(*JwtClaimsMap).Keys {
@@ -144,6 +152,15 @@ func ValidateJWT(t string) (bool, []uint64) {
 	} else {
 		return false, []uint64{0x000000}
 	}
+}
+
+func StringInSlice(s string, slice []string) bool {
+	for _, item := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
 
 // GetKeyRing return pgp keyring from a file location
