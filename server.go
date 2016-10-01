@@ -38,6 +38,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"./randid"
 )
 
 // SigningKey to sign and validate the jwt
@@ -332,7 +333,7 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"scopes": r.Scope,
 		"exp":    time.Now().Add(time.Hour * 1).Unix(),
-		"jti":    "1234123412341234123412341234",
+		"jti":    randid.Generate(32),
 	})
 
 	tokenString, err := token.SignedString(SigningKey)
