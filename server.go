@@ -28,6 +28,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-yaml/yaml"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"io"
@@ -37,7 +38,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"github.com/go-yaml/yaml"
 )
 
 // SigningKey to sign and validate the jwt
@@ -46,7 +46,7 @@ var KeyRingFilePath = string("./gpgkeys/secring.gpg")
 var ConfigFilePath = string("./config.yaml")
 
 type Configuration struct {
-	Port int `yaml:"port,omitempty"`
+	Port        int      `yaml:"port,omitempty"`
 	RevokedJWTs []string `yaml:"revoked_api_keys,omitempty"`
 }
 
@@ -78,14 +78,14 @@ func main() {
 
 func (Config *Configuration) LoadConfiguration(ConfigPath string) {
 
-        ConfigFileBytes, err := ioutil.ReadFile(ConfigPath)
-        if err != nil {
-                log.Println(err)
-        }
-        err = yaml.Unmarshal(ConfigFileBytes, &Config)
-        if err != nil {
-                log.Println(err)
-        }
+	ConfigFileBytes, err := ioutil.ReadFile(ConfigPath)
+	if err != nil {
+		log.Println(err)
+	}
+	err = yaml.Unmarshal(ConfigFileBytes, &Config)
+	if err != nil {
+		log.Println(err)
+	}
 	return
 }
 
@@ -98,7 +98,6 @@ func DecryptSecret(s string, k []uint64) string {
 		log.Println(err)
 		return ""
 	}
-
 
 	//only load keys found in var k
 	for _, keyid := range k {
@@ -128,8 +127,8 @@ func DecryptSecret(s string, k []uint64) string {
 func ValidateJWT(t string) (bool, []uint64) {
 
 	type JwtClaimsMap struct {
-		Keys []string `json:"scopes"`
-		JWTid string `json:"jti"`
+		Keys  []string `json:"scopes"`
+		JWTid string   `json:"jti"`
 		jwt.StandardClaims
 	}
 	//Validate jwt and return true or false plus a list of gpg private keys the requester has permission to.
@@ -178,10 +177,10 @@ func (PGPKeyring *MyEntityList) GetKeyRing() {
 
 	if os.IsNotExist(err) {
 		KeyringFileBuffer, err = os.Create(KeyRingFilePath)
-			if err != nil {
-				log.Println(err)
-				return
-			}
+		if err != nil {
+			log.Println(err)
+			return
+		}
 	} else {
 		KeyringFileBuffer, err = os.Open(KeyRingFilePath)
 		if err != nil {
@@ -277,7 +276,6 @@ func GeneratePGPKey(w http.ResponseWriter, req *http.Request) {
 		log.Println(err)
 		return
 	}
-
 
 	f, err := os.OpenFile(KeyRingFilePath, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
