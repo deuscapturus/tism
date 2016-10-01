@@ -50,12 +50,19 @@ type Configuration struct {
 	RevokedJWTs []string `yaml:"revoked_api_keys,omitempty"`
 }
 
+type MyEntityList struct {
+	openpgp.EntityList
+}
+
+var PGPKeyring = MyEntityList{}
+
 var Config = Configuration{}
 
 // main function.  Start http server and provide routes.
 func main() {
 
 	Config.LoadConfiguration(ConfigFilePath)
+	PGPKeyring.GetKeyRing()
 
 	server := http.Server{
 		Addr: ":8080",
@@ -92,13 +99,13 @@ func DecryptSecret(s string, k []uint64) string {
 		return ""
 	}
 
-	EntityList := GetKeyRing()
 
 	//only load keys found in var k
 	for _, keyid := range k {
-		tryKeys := EntityList.KeysById(keyid)
+		tryKeys := PGPKeyring.KeysById(keyid)
 		for _, tryKey := range tryKeys {
 			var TryKeyEntityList openpgp.EntityList
+
 			TryKeyEntityList = append(TryKeyEntityList, tryKey.Entity)
 			md, err := openpgp.ReadMessage(bytes.NewBuffer(dec), TryKeyEntityList, nil, nil)
 			if err != nil {
@@ -164,7 +171,7 @@ func StringInSlice(s string, slice []string) bool {
 }
 
 // GetKeyRing return pgp keyring from a file location
-func GetKeyRing() (EntityList openpgp.EntityList) {
+func (PGPKeyring *MyEntityList) GetKeyRing() {
 
 	_, err := os.Stat(KeyRingFilePath)
 	var KeyringFileBuffer *os.File
@@ -183,11 +190,12 @@ func GetKeyRing() (EntityList openpgp.EntityList) {
 		}
 	}
 
-	EntityList, err = openpgp.ReadKeyRing(KeyringFileBuffer)
+	EntityList, err := openpgp.ReadKeyRing(KeyringFileBuffer)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	*PGPKeyring = MyEntityList{EntityList}
 
 	return
 
@@ -223,7 +231,7 @@ func ListPGPKeys(w http.ResponseWriter, req *http.Request) {
 	JsonEncode := json.NewEncoder(w)
 	// Return the id and pub key in json
 
-	for _, entity := range GetKeyRing() {
+	for _, entity := range PGPKeyring.EntityList {
 		m := make(map[string]string)
 		m["CreationTime"] = entity.PrimaryKey.CreationTime.String()
 		m["Id"] = strconv.FormatUint(entity.PrimaryKey.KeyId, 16)
@@ -270,7 +278,7 @@ func GeneratePGPKey(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	GetKeyRing()
+	PGPKeyring.GetKeyRing()
 
 	f, err := os.OpenFile(KeyRingFilePath, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
