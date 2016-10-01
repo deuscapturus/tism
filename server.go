@@ -24,6 +24,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"Key":"`curl -s http://loc
 package main
 
 import (
+	"./randid"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
@@ -38,26 +39,23 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"./randid"
 )
 
-// SigningKey to sign and validate the jwt
-var SigningKey = []byte("sooFreakingsecret")
-var KeyRingFilePath = string("./gpgkeys/secring.gpg")
 var ConfigFilePath = string("./config.yaml")
 
 type Configuration struct {
-	Port        int      `yaml:"port,omitempty"`
-	RevokedJWTs []string `yaml:"revoked_api_keys,omitempty"`
+	Port            int      `yaml:"port,omitempty"`
+	RevokedJWTs     []string `yaml:"revoked_api_keys,omitempty"`
+	JWTsecret       string   `yaml:"jwt_secret,omitempty"`
+	KeyRingFilePath string   `yaml:"keyring_path,omitempty"`
 }
+var Config = Configuration{}
 
 type MyEntityList struct {
 	openpgp.EntityList
 }
-
 var PGPKeyring = MyEntityList{}
 
-var Config = Configuration{}
 
 // main function.  Start http server and provide routes.
 func main() {
@@ -134,7 +132,7 @@ func ValidateJWT(t string) (bool, []uint64) {
 	}
 	//Validate jwt and return true or false plus a list of gpg private keys the requester has permission to.
 	token, err := jwt.ParseWithClaims(t, &JwtClaimsMap{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SigningKey), nil
+		return []byte(Config.JWTsecret), nil
 	})
 	if err != nil {
 		log.Println(err)
@@ -173,17 +171,17 @@ func StringInSlice(s string, slice []string) bool {
 // GetKeyRing return pgp keyring from a file location
 func (PGPKeyring *MyEntityList) GetKeyRing() {
 
-	_, err := os.Stat(KeyRingFilePath)
+	_, err := os.Stat(Config.KeyRingFilePath)
 	var KeyringFileBuffer *os.File
 
 	if os.IsNotExist(err) {
-		KeyringFileBuffer, err = os.Create(KeyRingFilePath)
+		KeyringFileBuffer, err = os.Create(Config.KeyRingFilePath)
 		if err != nil {
 			log.Println(err)
 			return
 		}
 	} else {
-		KeyringFileBuffer, err = os.Open(KeyRingFilePath)
+		KeyringFileBuffer, err = os.Open(Config.KeyRingFilePath)
 		if err != nil {
 			log.Println(err)
 			return
@@ -278,7 +276,7 @@ func GeneratePGPKey(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	f, err := os.OpenFile(KeyRingFilePath, os.O_APPEND|os.O_WRONLY, 0600)
+	f, err := os.OpenFile(Config.KeyRingFilePath, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		log.Println(err)
 		return
@@ -336,7 +334,7 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) {
 		"jti":    randid.Generate(32),
 	})
 
-	tokenString, err := token.SignedString(SigningKey)
+	tokenString, err := token.SignedString([]byte(Config.JWTsecret))
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)

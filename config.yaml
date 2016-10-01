@@ -1,4 +1,7 @@
 port: 8080
+keyring_path: "./gpgkeys/secring.gpg"
+
+jwt_secret: sooFreakingsecret
 
 revoked_api_keys:
   - 1234123412341234123412341234
