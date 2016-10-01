@@ -278,7 +278,6 @@ func GeneratePGPKey(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	PGPKeyring.GetKeyRing()
 
 	f, err := os.OpenFile(KeyRingFilePath, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
@@ -292,6 +291,9 @@ func GeneratePGPKey(w http.ResponseWriter, req *http.Request) {
 		log.Println(err)
 		return
 	}
+
+	// Reload the Keyring after the new key is saved.
+	defer PGPKeyring.GetKeyRing()
 
 	type ReturnNewPGP struct {
 		Id     string
