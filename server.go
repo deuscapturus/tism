@@ -24,12 +24,12 @@ curl -H "Content-Type: application/json" -X POST -d '{"Key":"`curl -s http://loc
 package main
 
 import (
+	"./config"
 	"./randid"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/go-yaml/yaml"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"io"
@@ -43,13 +43,7 @@ import (
 
 var ConfigFilePath = string("./config.yaml")
 
-type Configuration struct {
-	Port            int      `yaml:"port,omitempty"`
-	RevokedJWTs     []string `yaml:"revoked_api_keys,omitempty"`
-	JWTsecret       string   `yaml:"jwt_secret,omitempty"`
-	KeyRingFilePath string   `yaml:"keyring_path,omitempty"`
-}
-var Config = Configuration{}
+var Config = config.Configuration{}
 
 type MyEntityList struct {
 	openpgp.EntityList
@@ -60,34 +54,38 @@ var PGPKeyring = MyEntityList{}
 // main function.  Start http server and provide routes.
 func main() {
 
-	Config.LoadConfiguration(ConfigFilePath)
+	Config.Load(ConfigFilePath)
 	PGPKeyring.GetKeyRing()
 
 	server := http.Server{
 		Addr: ":8080",
 	}
-
+	
 	//Routes
-	http.HandleFunc("/", HandleRequest)
-	http.HandleFunc("/key", IssueJWT)
-	http.HandleFunc("/createpgp", GeneratePGPKey)
-	http.HandleFunc("/listpgp", ListPGPKeys)
+	http.Handle("/", Handle(
+		HandleRequest,
+	))
+	http.Handle("/key", Handle(IssueJWT))
+	http.Handle("/createpgp", Handle(GeneratePGPKey))
+	http.Handle("/listpgp", Handle(ListPGPKeys))
+
 	log.Fatal(server.ListenAndServe())
 }
 
-func (Config *Configuration) LoadConfiguration(ConfigPath string) {
+type Handler func (w http.ResponseWriter, r *http.Request) (error)
 
-	ConfigFileBytes, err := ioutil.ReadFile(ConfigPath)
-	if err != nil {
-		log.Println(err)
-	}
-	err = yaml.Unmarshal(ConfigFileBytes, &Config)
-	if err != nil {
-		log.Println(err)
-	}
-	return
+
+func Handle(handlers ...Handler) (http.Handler) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		for _, handler := range handlers {
+			err := handler(w, r)
+			if err != nil {
+				w.Write([]byte(err.Error()))
+				return
+			}
+		}
+	})
 }
-
 // DecryptSecret decrypt the given string.
 // Do not return it if the decryption key is not in the k uint64 slice
 func DecryptSecret(s string, k []uint64) string {
@@ -222,7 +220,7 @@ func PubEntToAsciiArmor(pubEnt *openpgp.Entity) (asciiEntity string) {
 }
 
 // ListPGPKeys return json list of keys with metadata including id.
-func ListPGPKeys(w http.ResponseWriter, req *http.Request) {
+func ListPGPKeys(w http.ResponseWriter, req *http.Request) error {
 
 	//TODO: Authenticate user maybe?
 	var list []map[string]string
@@ -241,11 +239,12 @@ func ListPGPKeys(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "text/json")
 	JsonEncode.Encode(list)
+	return nil
 }
 
 // GeneratePGPKey will create a new private/public gpg key pair
 // and return the private key id and public key.
-func GeneratePGPKey(w http.ResponseWriter, req *http.Request) {
+func GeneratePGPKey(w http.ResponseWriter, req *http.Request) error {
 
 	JsonDecode := json.NewDecoder(req.Body)
 
@@ -263,7 +262,7 @@ func GeneratePGPKey(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Invalid JSON in Request Body")
 		log.Println(err)
-		return
+		return nil //return error in future
 	}
 
 	//TODO: Some authentication needed
@@ -273,20 +272,20 @@ func GeneratePGPKey(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Unable to create PGP key based on input")
 		log.Println(err)
-		return
+		return nil //return error in future
 	}
 
 	f, err := os.OpenFile(Config.KeyRingFilePath, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		log.Println(err)
-		return
+		return nil
 	}
 	defer f.Close()
 
 	NewEntity.SerializePrivate(f, nil)
 	if err != nil {
 		log.Println(err)
-		return
+		return nil
 	}
 
 	// Reload the Keyring after the new key is saved.
@@ -306,10 +305,11 @@ func GeneratePGPKey(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "text/json")
 	p := &ReturnNewPGP{NewEntityId, NewEntityPublicKey}
 	JsonEncode.Encode(*p)
+	return nil
 }
 
 // IssueJWT return a valid jwt with these statically defined scope values.
-func IssueJWT(w http.ResponseWriter, req *http.Request) {
+func IssueJWT(w http.ResponseWriter, req *http.Request) error {
 
 	JsonDecode := json.NewDecoder(req.Body)
 
@@ -325,7 +325,7 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Invalid JSON in Request Body")
 		log.Println(err)
-		return
+		return nil //return error in future
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -339,13 +339,15 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "Unable to generate jwt token")
+		return nil //return error in future
 	}
 	io.WriteString(w, tokenString)
+	return nil
 
 }
 
 // HandleRequest the route for all decryption requests
-func HandleRequest(w http.ResponseWriter, req *http.Request) {
+func HandleRequest(w http.ResponseWriter, req *http.Request) (error) {
 
 	json := json.NewDecoder(req.Body)
 
@@ -361,7 +363,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Invalid JSON in Request Body")
 		log.Println(err)
-		return
+		return nil //return error in future
 	}
 
 	//Validate JWT
@@ -381,6 +383,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Unauthorized")
-		return
+		return nil //return error in future
 	}
+	return nil
 }
