@@ -14,8 +14,10 @@ type Configuration struct {
 	KeyRingFilePath string   `yaml:"keyring_path,omitempty"`
 }
 
+var Config *Configuration
+
 // LoadConfiguration load athe configuration from the provided confioguration path.
-func (Config *Configuration) Load(ConfigPath string) {
+func Load(ConfigPath string) {
 
 	ConfigFileBytes, err := ioutil.ReadFile(ConfigPath)
 	if err != nil {
@@ -25,6 +27,6 @@ func (Config *Configuration) Load(ConfigPath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return
+
 }
 
