@@ -3,8 +3,8 @@ package token
 
 import (
 	"../config"
+	"../request"
 	"../randid"
-	"encoding/json"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"io"
@@ -12,8 +12,6 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	"io/ioutil"
-	"bytes"
 //	"context"
 )
 
@@ -56,23 +54,11 @@ func Scope(t string) []uint64 {
 	}
 	return claims
 }
-const Mytest = "fake"
-func IsValid(w http.ResponseWriter, rc http.Request) (error, http.Request) {
-	log.Println(rc.Context().Value(Mytest))
-	type Request struct {
-		Token string `json:"token"`
-		Scope []string `json:"Scope"`
-	}
-	json := json.NewDecoder(rc.Body)
 
-	var req Request
-	err := json.Decode(&req)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("Content-Type", "text/plain")
-		io.WriteString(w, "Invalid JSON in Request Body in IsValid")
-		return err, rc
-	}
+func IsValid(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+	log.Println("in IsValid")
+	var req request.Request
+	req = rc.Context().Value("request").(request.Request)
 
 	token, err := parseToken(req.Token)
 	if err != nil {
@@ -87,36 +73,15 @@ func IsValid(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-Type", "text/plain")
-		return errors.New("Token is not valid"), rc //All requests pass.  return error in future
+		return errors.New("Token is not valid"), rc
 	}
 	return nil, rc
 }
 
 // IssueJWT return a valid jwt with these statically defined scope values.
 func IssueToken(w http.ResponseWriter, rc http.Request) (error, http.Request) {
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(rc.Body)
-	log.Println("logging out req buffer in IssueToken")
-	log.Println(buf)
-	log.Println("finished logging out req buffer in IssueToken")
-
-	reqbody, _ := ioutil.ReadAll(rc.Body)
-	log.Println(string(reqbody))
-	json := json.NewDecoder(rc.Body)
-
-	type RequestNewToken struct {
-		Token string `json:"token"`
-		Scope []string
-	}
-
-	var req RequestNewToken
-	err := json.Decode(&req)
-	if err != nil {
-		log.Println("in JsonDecode.Decode")
-		w.WriteHeader(http.StatusBadRequest)
-		log.Println(err)
-		return errors.New("Invalid JSON for some dumbass reason"), rc
-	}
+	var req request.Request
+	req = rc.Context().Value("request").(request.Request)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"scopes": req.Scope,

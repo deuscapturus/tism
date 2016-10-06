@@ -27,6 +27,7 @@ import (
 	"./token"
 	"./config"
 	"./randid"
+	"./request"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
@@ -40,8 +41,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"errors"
-	"context"
 )
 
 var ConfigFilePath = string("./config.yaml")
@@ -62,11 +61,8 @@ func main() {
 	}
 
 	//Routes
-	http.Handle("/", Handle(
-		HandleRequest,
-	))
 	http.Handle("/token/new", Handle(
-		ParseRequest,
+		request.ParseRequest,
 		token.IsValid,
 		token.IssueToken,
 	))
@@ -91,32 +87,6 @@ func Handle(handlers ...Handler) (http.Handler) {
 			}
 		}
 	})
-}
-
-type Request struct {
-	Token string `json:"token"`
-	Scope []string `json:"Scope"`
-	GpgContents string `json:"GpgContents"`
-}
-
-const Mytest = "fake"
-var req = Request{}
-// ParseRequest get the json message body and map it to our Request struct.
-// This should be the first middleware step.
-func ParseRequest(w http.ResponseWriter, rc http.Request) (error, http.Request) {
-
-
-	json := json.NewDecoder(rc.Body)
-
-	err := json.Decode(&req)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("Content-Type", "text/plain")
-		return errors.New("Invalid JSON request in body"), rc
-	}
-	log.Println(req.Token)
-	context := context.WithValue(rc.Context(), Mytest, req.Token)
-	return nil, *rc.WithContext(context)
 }
 
 // DecryptSecret decrypt the given string.
@@ -151,43 +121,6 @@ func DecryptSecret(s string, k []uint64) string {
 	}
 	return ""
 
-}
-
-// ValidateJWT validate string jwt and return true/false if valid along with a slice of uint64 pgp key id's.
-func ValidateJWT(t string) (bool, []uint64) {
-
-	type JwtClaimsMap struct {
-		Keys  []string `json:"scopes"`
-		JWTid string   `json:"jti"`
-		jwt.StandardClaims
-	}
-	//Validate jwt and return true or false plus a list of gpg private keys the requester has permission to.
-	token, err := jwt.ParseWithClaims(t, &JwtClaimsMap{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.Config.JWTsecret), nil
-	})
-	if err != nil {
-		log.Println(err)
-		return false, []uint64{0}
-	}
-
-	if StringInSlice(token.Claims.(*JwtClaimsMap).JWTid, config.Config.RevokedJWTs) {
-		log.Println("JWT Revoked")
-		return false, []uint64{0}
-	}
-
-	if token.Valid {
-		var claims []uint64
-		for _, j := range token.Claims.(*JwtClaimsMap).Keys {
-			j, err := strconv.ParseUint(j, 16, 64)
-			if err != nil {
-				log.Println(err)
-			}
-			claims = append(claims, j)
-		}
-		return true, claims
-	} else {
-		return false, []uint64{0x000000}
-	}
 }
 
 func StringInSlice(s string, slice []string) bool {
@@ -380,43 +313,43 @@ func IssueJWT(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 }
 
 // HandleRequest the route for all decryption requests
-func HandleRequest(w http.ResponseWriter, rc http.Request) (error, http.Request) {
-
-	json := json.NewDecoder(rc.Body)
-
-	type RequestDecrypt struct {
-		Key	 string
-		GpgContents string
-	}
-
-	var r RequestDecrypt
-	err := json.Decode(&r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("Content-Type", "text/plain")
-		io.WriteString(w, "Invalid JSON in Request Body")
-		log.Println(err)
-		return nil, rc //return error in future
-	}
-
-	//Validate JWT
-	jwtvalid, gpgkeys := ValidateJWT(r.Key)
-	if jwtvalid {
-		w.Header().Set("Content-Type", "text/plain")
-		decrypted := DecryptSecret(r.GpgContents, gpgkeys)
-		if decrypted == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			io.WriteString(w, "Unable to Decrypt Message")
-		} else {
-			io.WriteString(w, decrypted)
-		}
-
-	} else {
-		// Return 404 if JWT is not valid
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Header().Set("Content-Type", "text/plain")
-		io.WriteString(w, "Unauthorized")
-		return nil, rc //return error in future
-	}
-	return nil, rc
-}
+//func HandleRequest(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+//
+//	json := json.NewDecoder(rc.Body)
+//
+//	type RequestDecrypt struct {
+//		Key	 string
+//		GpgContents string
+//	}
+//
+//	var r RequestDecrypt
+//	err := json.Decode(&r)
+//	if err != nil {
+//		w.WriteHeader(http.StatusBadRequest)
+//		w.Header().Set("Content-Type", "text/plain")
+//		io.WriteString(w, "Invalid JSON in Request Body")
+//		log.Println(err)
+//		return nil, rc //return error in future
+//	}
+//
+//	//Validate JWT
+//	jwtvalid, gpgkeys := token.ValidateJWT(r.Key)
+//	if jwtvalid {
+//		w.Header().Set("Content-Type", "text/plain")
+//		decrypted := DecryptSecret(r.GpgContents, gpgkeys)
+//		if decrypted == "" {
+//			w.WriteHeader(http.StatusBadRequest)
+//			io.WriteString(w, "Unable to Decrypt Message")
+//		} else {
+//			io.WriteString(w, decrypted)
+//		}
+//
+//	} else {
+//		// Return 404 if JWT is not valid
+//		w.WriteHeader(http.StatusUnauthorized)
+//		w.Header().Set("Content-Type", "text/plain")
+//		io.WriteString(w, "Unauthorized")
+//		return nil, rc //return error in future
+//	}
+//	return nil, rc
+//}
