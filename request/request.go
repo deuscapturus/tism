@@ -13,6 +13,10 @@ type Request struct {
 	Token string `json:"token"`
 	Scope []string `json:"Scope"`
 	GpgContents string `json:"GpgContents"`
+	Key string `json:"key"`
+        Name    string `json:"name"`
+        Comment string `json:"comment"`
+        Email   string `json:"email"`
 }
 
 var req = Request{}

@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -206,47 +205,29 @@ func ListPGPKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 // GeneratePGPKey will create a new private/public gpg key pair
 // and return the private key id and public key.
 func GeneratePGPKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
-
-	JsonDecode := json.NewDecoder(rc.Body)
-
-	type RequestNewPGP struct {
-		Key     string
-		Name    string
-		Comment string
-		Email   string
-	}
-
-	var r RequestNewPGP
-	err := JsonDecode.Decode(&r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("Content-Type", "text/plain")
-		io.WriteString(w, "Invalid JSON in Request Body")
-		log.Println(err)
-		return nil, rc //return error in future
-	}
+        var req request.Request
+	req = rc.Context().Value("request").(request.Request)
 
 	//TODO: Some authentication needed
-	NewEntity, err := openpgp.NewEntity(r.Name, r.Comment, r.Email, nil)
+	NewEntity, err := openpgp.NewEntity(req.Name, req.Comment, req.Email, nil)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Header().Set("Content-Type", "text/plain")
-		io.WriteString(w, "Unable to create PGP key based on input")
 		log.Println(err)
-		return nil, rc //return error in future
+		return err, rc
 	}
 
 	f, err := os.OpenFile(config.Config.KeyRingFilePath, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		log.Println(err)
-		return nil, rc
+		return err, rc
 	}
 	defer f.Close()
 
 	NewEntity.SerializePrivate(f, nil)
 	if err != nil {
 		log.Println(err)
-		return nil, rc
+		return err, rc
 	}
 
 	// Reload the Keyring after the new key is saved.
