@@ -1,4 +1,4 @@
-// main package for the Immutable Secrets Managements API.  It will decrypt and return a pgp encrypted messages if the requester has a valid jwt token that lists the pgp decrpytion id in it's scope.
+// main package for the Immutable Secrets Managements API.  This service will decrypt and return a pgp encrypted messages if the requester has a valid jwt token that lists the pgp key's id in it's scope.
 package main
 
 import (

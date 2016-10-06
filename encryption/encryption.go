@@ -1,3 +1,4 @@
+// encrpytion package holds all pgp related tasks
 package encryption
 
 import (
@@ -22,7 +23,7 @@ type MyEntityList struct {
 
 var KeyRing = MyEntityList{}
 
-// DecryptSecret decrypt the given string.
+// Decrypt decrypt the given string.
 // Do not return it if the decryption key is not in the k uint64 slice
 func Decrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
@@ -61,13 +62,11 @@ func Decrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 }
 
-// ListPGPKeys return json list of keys with metadata including id.
+// ListKeys return json list of keys with metadata including id.
 func ListKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
-	//TODO: Authenticate user maybe?
 	var list []map[string]string
 	JsonEncode := json.NewEncoder(w)
-	// Return the id and pub key in json
 
 	for _, entity := range KeyRing.EntityList {
 		m := make(map[string]string)
@@ -84,13 +83,12 @@ func ListKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	return nil, rc
 }
 
-// GeneratePGPKey will create a new private/public gpg key pair
+// NewKey will create a new private/public gpg key pair
 // and return the private key id and public key.
 func NewKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
         var req request.Request
 	req = rc.Context().Value("request").(request.Request)
 
-	//TODO: Some authentication needed
 	NewEntity, err := openpgp.NewEntity(req.Name, req.Comment, req.Email, nil)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -172,7 +170,7 @@ func (KeyRing *MyEntityList) GetKeyRing() {
 	return
 }
 
-//Create ASscii Armor from openpgp.Entity
+//PubEntToAsciiArmor create Ascii Armor from openpgp.Entity
 func PubEntToAsciiArmor(pubEnt *openpgp.Entity) (asciiEntity string) {
 
 	gotWriter := bytes.NewBuffer(nil)
@@ -193,4 +191,3 @@ func PubEntToAsciiArmor(pubEnt *openpgp.Entity) (asciiEntity string) {
 	asciiEntity = gotWriter.String()
 	return
 }
-
