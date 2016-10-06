@@ -17,7 +17,7 @@ func main() {
 
 	config.Load(ConfigFilePath)
 
-	encryption.PGPKeyring.GetKeyRing()
+	encryption.KeyRing.GetKeyRing()
 
 	server := http.Server{
 		Addr: ":8080",
@@ -65,4 +65,3 @@ func Handle(handlers ...Handler) (http.Handler) {
 		}
 	})
 }
-

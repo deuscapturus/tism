@@ -20,7 +20,7 @@ type MyEntityList struct {
         openpgp.EntityList
 }
 
-var PGPKeyring = MyEntityList{}
+var KeyRing = MyEntityList{}
 
 // DecryptSecret decrypt the given string.
 // Do not return it if the decryption key is not in the k uint64 slice
@@ -37,7 +37,7 @@ func Decrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	k := rc.Context().Value("claims").([]uint64)
 	//only load keys found in var k
 	for _, keyid := range k {
-		tryKeys := PGPKeyring.KeysById(keyid)
+		tryKeys := KeyRing.KeysById(keyid)
 		for _, tryKey := range tryKeys {
 			var TryKeyEntityList openpgp.EntityList
 
@@ -69,7 +69,7 @@ func ListKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	JsonEncode := json.NewEncoder(w)
 	// Return the id and pub key in json
 
-	for _, entity := range PGPKeyring.EntityList {
+	for _, entity := range KeyRing.EntityList {
 		m := make(map[string]string)
 		m["CreationTime"] = entity.PrimaryKey.CreationTime.String()
 		m["Id"] = strconv.FormatUint(entity.PrimaryKey.KeyId, 16)
@@ -113,7 +113,7 @@ func NewKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	}
 
 	// Reload the Keyring after the new key is saved.
-	defer PGPKeyring.GetKeyRing()
+	defer KeyRing.GetKeyRing()
 
 	type ReturnNewPGP struct {
 		Id     string
@@ -143,7 +143,7 @@ func StringInSlice(s string, slice []string) bool {
 }
 
 // GetKeyRing return pgp keyring from a file location
-func (PGPKeyring *MyEntityList) GetKeyRing() {
+func (KeyRing *MyEntityList) GetKeyRing() {
 
 	_, err := os.Stat(config.Config.KeyRingFilePath)
 	var KeyringFileBuffer *os.File
@@ -167,7 +167,7 @@ func (PGPKeyring *MyEntityList) GetKeyRing() {
 		log.Println(err)
 		return
 	}
-	*PGPKeyring = MyEntityList{EntityList}
+	*KeyRing = MyEntityList{EntityList}
 
 	return
 }
