@@ -82,9 +82,9 @@ type Handler func (w http.ResponseWriter, rc http.Request) (error, http.Request)
 func Handle(handlers ...Handler) (http.Handler) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rc := *r.WithContext(r.Context())
+		var err error
 		for _, handler := range handlers {
-			err, rc := handler(w, rc)
-			log.Println(rc) // printing this only so go doesn't error about rc not being used.
+			err, rc = handler(w, rc)
 			if err != nil {
 				w.Write([]byte(err.Error()))
 				return
