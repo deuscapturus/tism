@@ -1,37 +1,13 @@
-/* Package POC API will decrypt and return a pgp encrypted message if the requester has a valid jwt token that lists the pgp decrpytion id in it's scope.
-
-Create New PGP Key
-==================
-curl -H "Content-Type: application/json" -X POST -d '{"Key":"asdf", "Name":"testkey", "Comment":"test comment","Email":"test@key.test"}' http://localhost:8080/createpgp
-
-Encrypt a Message
-=================
-echo -n "this was encrypted" | gpg --batch --trust-model always --encrypt -r "Test Accounting <test@fakedomain.com>" --homedir ./gpgkeys/ | base64 -w 0
-
-List availble PGP Decryption Keys
-=================================
-curl http://localhost:8080/listpgp
-
-Get a JWT Token
-===============
-curl -H "Content-Type: application/json" -X POST -d '{"Key":"123","Scope":["SOMEGPGID1","SOMEGPGID2"]' http://localhost:8080/key
-
-Decrypt a Secret
-================
-curl -H "Content-Type: application/json" -X POST -d '{"Key":"`curl -s http://localhost:8080/key`","GpgContents":"hQEMA5siECpJxYMfAQf8D3+/slhHH47advUt+J8UZaQhP+fXiwR/R/GHalti3mFg6GknMIr7lKbxitGMsBFkTn+Qt1Mp0EuM+Z/suG1Jl+ppZ3WD5KjoBjZbDB8JYQw9aqPhQ/gl/M0GMwrZeyIUbHhtTUaEGZz53lcVWec6HItyGhEW3Lhv9MwciX4CvYp6aj3bJ6XLLfvTZe0qFBibMx8/VYX2gaJLZTC4kkTs7JXDVSzjGRKITnlVCUt+Qb8t8NkC/MzDH5xHZEts+KOy7TF5AQ7LBJ5mJL3X0WJtnnA7MSFFHABiT5/0Oa+SsH2aCv3AOb8l7FipVLxC3oJEbdEyp8eMMr54+pWDRRoreNJNAZMa2Fyt4wsDEbm6gsQzjjJ7e2Lj8osnDfiLalIEgczYHkkMpUaqNWlb+ErEUewKuMYahNg49op5RGu+8J+S+8cEJb2cWNdlLoi3kME="}"}' http://localhost:8080/
-
-*/
+// main package for the Immutable Secrets Managements API.  It will decrypt and return a pgp encrypted messages if the requester has a valid jwt token that lists the pgp decrpytion id in it's scope.
 package main
 
 import (
 	"./token"
 	"./config"
-	"./randid"
 	"./request"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"io"
@@ -40,7 +16,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
+	"errors"
 )
 
 var ConfigFilePath = string("./config.yaml")
@@ -61,13 +37,27 @@ func main() {
 	}
 
 	//Routes
+	http.Handle("/decrypt", Handle(
+		request.ParseRequest,
+		token.IsValid,
+		token.GetAllowedKeys,
+		DecryptSecret,
+	))
 	http.Handle("/token/new", Handle(
 		request.ParseRequest,
 		token.IsValid,
 		token.IssueToken,
 	))
-	http.Handle("/createpgp", Handle(GeneratePGPKey))
-	http.Handle("/listpgp", Handle(ListPGPKeys))
+	http.Handle("/key/new", Handle(
+		request.ParseRequest,
+		token.IsValid,
+		GeneratePGPKey,
+	))
+	http.Handle("/key/list", Handle(
+		request.ParseRequest,
+		token.IsValid,
+		ListPGPKeys,
+	))
 
 	log.Fatal(server.ListenAndServe())
 }
@@ -91,14 +81,17 @@ func Handle(handlers ...Handler) (http.Handler) {
 
 // DecryptSecret decrypt the given string.
 // Do not return it if the decryption key is not in the k uint64 slice
-func DecryptSecret(s string, k []uint64) string {
+func DecryptSecret(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
-	dec, err := base64.StdEncoding.DecodeString(s)
+	//var req request.Request
+	req := rc.Context().Value("request").(request.Request)
+
+	dec, err := base64.StdEncoding.DecodeString(req.GpgContents)
 	if err != nil {
 		log.Println(err)
-		return ""
+		return err, rc
 	}
-
+	k := rc.Context().Value("claims").([]uint64)
 	//only load keys found in var k
 	for _, keyid := range k {
 		tryKeys := PGPKeyring.KeysById(keyid)
@@ -116,13 +109,16 @@ func DecryptSecret(s string, k []uint64) string {
 				log.Println(err)
 				continue
 			}
-			return string(message)
+			w.Write(message)
+			return nil, rc
 		}
 	}
-	return ""
+	w.WriteHeader(http.StatusInternalServerError)
+	return errors.New("Nothing Decrypted"), rc
 
 }
 
+// StringInSlice is self explanatory.  Return true or false.
 func StringInSlice(s string, slice []string) bool {
 	for _, item := range slice {
 		if s == item {
@@ -160,7 +156,6 @@ func (PGPKeyring *MyEntityList) GetKeyRing() {
 	*PGPKeyring = MyEntityList{EntityList}
 
 	return
-
 }
 
 //Create ASscii Armor from openpgp.Entity
@@ -273,83 +268,3 @@ func GeneratePGPKey(w http.ResponseWriter, rc http.Request) (error, http.Request
 	JsonEncode.Encode(*p)
 	return nil, rc
 }
-
-// IssueJWT return a valid jwt with these statically defined scope values.
-func IssueJWT(w http.ResponseWriter, rc http.Request) (error, http.Request) {
-
-	JsonDecode := json.NewDecoder(rc.Body)
-
-	type RequestNewJWT struct {
-		Key   string
-		Scope []string
-	}
-
-	var r RequestNewJWT
-	err := JsonDecode.Decode(&r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("Content-Type", "text/plain")
-		io.WriteString(w, "Invalid JSON in Request Body")
-		log.Println(err)
-		return nil, rc //return error in future
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"scopes": r.Scope,
-		"exp":    time.Now().Add(time.Hour * 1).Unix(),
-		"jti":    randid.Generate(32),
-	})
-
-	tokenString, err := token.SignedString([]byte(config.Config.JWTsecret))
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "Unable to generate jwt token")
-		return nil, rc //return error in future
-	}
-	io.WriteString(w, tokenString)
-	return nil, rc
-
-}
-
-// HandleRequest the route for all decryption requests
-//func HandleRequest(w http.ResponseWriter, rc http.Request) (error, http.Request) {
-//
-//	json := json.NewDecoder(rc.Body)
-//
-//	type RequestDecrypt struct {
-//		Key	 string
-//		GpgContents string
-//	}
-//
-//	var r RequestDecrypt
-//	err := json.Decode(&r)
-//	if err != nil {
-//		w.WriteHeader(http.StatusBadRequest)
-//		w.Header().Set("Content-Type", "text/plain")
-//		io.WriteString(w, "Invalid JSON in Request Body")
-//		log.Println(err)
-//		return nil, rc //return error in future
-//	}
-//
-//	//Validate JWT
-//	jwtvalid, gpgkeys := token.ValidateJWT(r.Key)
-//	if jwtvalid {
-//		w.Header().Set("Content-Type", "text/plain")
-//		decrypted := DecryptSecret(r.GpgContents, gpgkeys)
-//		if decrypted == "" {
-//			w.WriteHeader(http.StatusBadRequest)
-//			io.WriteString(w, "Unable to Decrypt Message")
-//		} else {
-//			io.WriteString(w, decrypted)
-//		}
-//
-//	} else {
-//		// Return 404 if JWT is not valid
-//		w.WriteHeader(http.StatusUnauthorized)
-//		w.Header().Set("Content-Type", "text/plain")
-//		io.WriteString(w, "Unauthorized")
-//		return nil, rc //return error in future
-//	}
-//	return nil, rc
-//}
