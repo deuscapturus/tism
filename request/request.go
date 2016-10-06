@@ -2,21 +2,21 @@
 package request
 
 import (
-	"encoding/json"
-	"net/http"
-	"errors"
 	"context"
+	"encoding/json"
+	"errors"
+	"net/http"
 )
 
 // Request put fields for all requests in this struct.
 type Request struct {
-	Token string `json:"token"`
-	Scope []string `json:"Scope"`
-	GpgContents string `json:"GpgContents"`
-	Key string `json:"key"`
-        Name    string `json:"name"`
-        Comment string `json:"comment"`
-        Email   string `json:"email"`
+	Token       string   `json:"token"`
+	Scope       []string `json:"Scope"`
+	GpgContents string   `json:"GpgContents"`
+	Key         string   `json:"key"`
+	Name        string   `json:"name"`
+	Comment     string   `json:"comment"`
+	Email       string   `json:"email"`
 }
 
 var req = Request{}
@@ -36,4 +36,3 @@ func ParseRequest(w http.ResponseWriter, rc http.Request) (error, http.Request) 
 	context := context.WithValue(rc.Context(), "request", req)
 	return nil, *rc.WithContext(context)
 }
-

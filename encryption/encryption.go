@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"io/ioutil"
@@ -14,11 +15,10 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"errors"
 )
 
 type MyEntityList struct {
-        openpgp.EntityList
+	openpgp.EntityList
 }
 
 var KeyRing = MyEntityList{}
@@ -86,7 +86,7 @@ func ListKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 // NewKey will create a new private/public gpg key pair
 // and return the private key id and public key.
 func NewKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
-        var req request.Request
+	var req request.Request
 	req = rc.Context().Value("request").(request.Request)
 
 	NewEntity, err := openpgp.NewEntity(req.Name, req.Comment, req.Email, nil)

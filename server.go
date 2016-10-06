@@ -2,10 +2,10 @@
 package main
 
 import (
-	"./token"
 	"./config"
 	"./encryption"
 	"./request"
+	"./token"
 	"log"
 	"net/http"
 )
@@ -49,10 +49,10 @@ func main() {
 	log.Fatal(server.ListenAndServe())
 }
 
-type Handler func (w http.ResponseWriter, rc http.Request) (error, http.Request)
+type Handler func(w http.ResponseWriter, rc http.Request) (error, http.Request)
 
 // Handle is middleware chain handler
-func Handle(handlers ...Handler) (http.Handler) {
+func Handle(handlers ...Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rc := *r.WithContext(r.Context())
 		var err error

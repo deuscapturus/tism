@@ -3,8 +3,8 @@ package randid
 
 import (
 	"math/rand"
-	"time"
 	"strconv"
+	"time"
 )
 
 // RandomId returns a base n (10, 8, 16, 32) encoded random int64 number

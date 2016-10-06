@@ -29,4 +29,3 @@ func Load(ConfigPath string) {
 	}
 
 }
-

@@ -3,8 +3,9 @@ package token
 
 import (
 	"../config"
-	"../request"
 	"../randid"
+	"../request"
+	"context"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"io"
@@ -12,7 +13,6 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	"context"
 )
 
 type JwtClaimsMap struct {
@@ -88,18 +88,19 @@ func GetAllowedKeys(w http.ResponseWriter, rc http.Request) (error, http.Request
 	}
 
 	var claims []uint64
-        for _, j := range token.Claims.(*JwtClaimsMap).Keys {
-                j, err := strconv.ParseUint(j, 16, 64)
-                if err != nil {
-                        log.Println(err)
+	for _, j := range token.Claims.(*JwtClaimsMap).Keys {
+		j, err := strconv.ParseUint(j, 16, 64)
+		if err != nil {
+			log.Println(err)
 			return err, rc
-                }
-                claims = append(claims, j)
-        }
+		}
+		claims = append(claims, j)
+	}
 
 	context := context.WithValue(rc.Context(), "claims", claims)
 	return nil, *rc.WithContext(context)
 }
+
 // IssueJWT return a valid jwt with these statically defined scope values.
 func IssueToken(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	var req request.Request
