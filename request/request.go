@@ -3,12 +3,12 @@ package request
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"errors"
 	"context"
 )
 
+// Request put fields for all requests in this struct.
 type Request struct {
 	Token string `json:"token"`
 	Scope []string `json:"Scope"`
@@ -18,7 +18,7 @@ type Request struct {
 var req = Request{}
 
 // ParseRequest get the json message body and map it to our Request struct.
-// This should be the first middleware step.
+// This is the only way to get information from the request body through the middlware chain.  The message body is destroyed after the first read here.
 func ParseRequest(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	json := json.NewDecoder(rc.Body)
@@ -29,7 +29,6 @@ func ParseRequest(w http.ResponseWriter, rc http.Request) (error, http.Request) 
 		w.Header().Set("Content-Type", "text/plain")
 		return errors.New("Invalid JSON request in body"), rc
 	}
-	log.Println(req.Token)
 	context := context.WithValue(rc.Context(), "request", req)
 	return nil, *rc.WithContext(context)
 }

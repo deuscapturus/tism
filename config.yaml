@@ -1,7 +1,8 @@
 port: 8080
 keyring_path: "./gpgkeys/secring.gpg"
 
-jwt_secret: sooFreakingsecret
+# jwt_secret The secret used to sign all JWT's.  If this is changed all previosly signed tokens will become invalid.
+token_secret: sooFreakingsecret
 
 revoked_api_keys:
   - 1234123412341234123412341234

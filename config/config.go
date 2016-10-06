@@ -10,7 +10,7 @@ import (
 type Configuration struct {
 	Port            int      `yaml:"port,omitempty"`
 	RevokedJWTs     []string `yaml:"revoked_api_keys,omitempty"`
-	JWTsecret       string   `yaml:"jwt_secret,omitempty"`
+	JWTsecret       string   `yaml:"token_secret,omitempty"`
 	KeyRingFilePath string   `yaml:"keyring_path,omitempty"`
 }
 
