@@ -2,15 +2,19 @@
 package token
 
 import (
-	"./config"
-	"./randid"
+	"../config"
+	"../randid"
 	"encoding/json"
+	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+	"io/ioutil"
+	"bytes"
+//	"context"
 )
 
 type JwtClaimsMap struct {
@@ -25,19 +29,21 @@ type RequestDecrypt struct {
 	Token string `json:"token"`
 }
 
-func parseToken(t string) (token *jwt.Token) {
-	signingSecret := []byte(config.Config.JWTsecret)
-	token, err := jwt.ParseWithClaims(t, &JwtClaimsMap{}, signingSecret)
-	if err != nil {
-		log.Println(err)
+func parseToken(t string) (token *jwt.Token, err error) {
+	signingSecret := func(token *jwt.Token) (interface{}, error) {
+		return []byte(config.Config.JWTsecret), nil
 	}
-	return token
+	token, err = jwt.ParseWithClaims(t, &JwtClaimsMap{}, signingSecret)
+	return token, err
 }
 
 // Scope return a list of key ids from the token scope.
 func Scope(t string) []uint64 {
 
-	token := parseToken(t)
+	token, err := parseToken(t)
+	if err != nil {
+		log.Println(err)
+	}
 
 	var claims []uint64
 
@@ -50,53 +56,71 @@ func Scope(t string) []uint64 {
 	}
 	return claims
 }
+const Mytest = "fake"
+func IsValid(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+	log.Println(rc.Context().Value(Mytest))
+	type Request struct {
+		Token string `json:"token"`
+		Scope []string `json:"Scope"`
+	}
+	json := json.NewDecoder(rc.Body)
 
-func IsValid(w http.ResponseWriter, req *http.Request) error {
-
-	json := json.NewDecoder(req.Body)
-
-	var r Request
-	err := json.Decode(&r)
+	var req Request
+	err := json.Decode(&req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Header().Set("Content-Type", "text/plain")
-		io.WriteString(w, "Invalid JSON in Request Body")
-		log.Println(err)
-		return nil //return error in future
+		io.WriteString(w, "Invalid JSON in Request Body in IsValid")
+		return err, rc
 	}
 
-	token := paseToken(r.Key)
-	if token.Valid {
-		return nil
-	} else {
-		return nil //All requests pass.  return error in future
+	token, err := parseToken(req.Token)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("Content-Type", "text/plain")
+		return err, rc
 	}
-	return nil
+
+	if token.Valid {
+		log.Println("Token is Valid")
+		return nil, rc
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("Content-Type", "text/plain")
+		return errors.New("Token is not valid"), rc //All requests pass.  return error in future
+	}
+	return nil, rc
 }
 
 // IssueJWT return a valid jwt with these statically defined scope values.
-func IssueToken(w http.ResponseWriter, req *http.Request) error {
+func IssueToken(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(rc.Body)
+	log.Println("logging out req buffer in IssueToken")
+	log.Println(buf)
+	log.Println("finished logging out req buffer in IssueToken")
 
-	JsonDecode := json.NewDecoder(req.Body)
+	reqbody, _ := ioutil.ReadAll(rc.Body)
+	log.Println(string(reqbody))
+	json := json.NewDecoder(rc.Body)
 
-	type RequestNewJWT struct {
-		Key   string
+	type RequestNewToken struct {
+		Token string `json:"token"`
 		Scope []string
 	}
 
-	var r RequestNewJWT
-	err := JsonDecode.Decode(&r)
+	var req RequestNewToken
+	err := json.Decode(&req)
 	if err != nil {
+		log.Println("in JsonDecode.Decode")
 		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("Content-Type", "text/plain")
-		io.WriteString(w, "Invalid JSON in Request Body")
 		log.Println(err)
-		return nil //return error in future
+		return errors.New("Invalid JSON for some dumbass reason"), rc
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"scopes": r.Scope,
-		"exp":    time.Now().Add(time.Hour * 1).Unix(),
+		"scopes": req.Scope,
+		"exp":    time.Now().Add(time.Hour * 30303).Unix(),
 		"jti":    randid.Generate(32),
 	})
 
@@ -104,10 +128,9 @@ func IssueToken(w http.ResponseWriter, req *http.Request) error {
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "Unable to generate jwt token")
-		return nil //return error in future
+		return err, rc
 	}
 	io.WriteString(w, tokenString)
-	return nil
+	return nil, rc
 
 }

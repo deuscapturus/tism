@@ -24,6 +24,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"Key":"`curl -s http://loc
 package main
 
 import (
+	"./token"
 	"./config"
 	"./randid"
 	"bytes"
@@ -39,6 +40,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"errors"
+	"context"
 )
 
 var ConfigFilePath = string("./config.yaml")
@@ -62,20 +65,26 @@ func main() {
 	http.Handle("/", Handle(
 		HandleRequest,
 	))
-	http.Handle("/key", Handle(IssueJWT))
+	http.Handle("/token/new", Handle(
+		ParseRequest,
+		token.IsValid,
+		token.IssueToken,
+	))
 	http.Handle("/createpgp", Handle(GeneratePGPKey))
 	http.Handle("/listpgp", Handle(ListPGPKeys))
 
 	log.Fatal(server.ListenAndServe())
 }
 
-type Handler func (w http.ResponseWriter, r *http.Request) (error)
+type Handler func (w http.ResponseWriter, rc http.Request) (error, http.Request)
 
-
+// Handle is middleware chain handler
 func Handle(handlers ...Handler) (http.Handler) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rc := *r.WithContext(r.Context())
 		for _, handler := range handlers {
-			err := handler(w, r)
+			err, rc := handler(w, rc)
+			log.Println(rc) // printing this only so go doesn't error about rc not being used.
 			if err != nil {
 				w.Write([]byte(err.Error()))
 				return
@@ -83,6 +92,33 @@ func Handle(handlers ...Handler) (http.Handler) {
 		}
 	})
 }
+
+type Request struct {
+	Token string `json:"token"`
+	Scope []string `json:"Scope"`
+	GpgContents string `json:"GpgContents"`
+}
+
+const Mytest = "fake"
+var req = Request{}
+// ParseRequest get the json message body and map it to our Request struct.
+// This should be the first middleware step.
+func ParseRequest(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+
+
+	json := json.NewDecoder(rc.Body)
+
+	err := json.Decode(&req)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("Content-Type", "text/plain")
+		return errors.New("Invalid JSON request in body"), rc
+	}
+	log.Println(req.Token)
+	context := context.WithValue(rc.Context(), Mytest, req.Token)
+	return nil, *rc.WithContext(context)
+}
+
 // DecryptSecret decrypt the given string.
 // Do not return it if the decryption key is not in the k uint64 slice
 func DecryptSecret(s string, k []uint64) string {
@@ -217,7 +253,7 @@ func PubEntToAsciiArmor(pubEnt *openpgp.Entity) (asciiEntity string) {
 }
 
 // ListPGPKeys return json list of keys with metadata including id.
-func ListPGPKeys(w http.ResponseWriter, req *http.Request) error {
+func ListPGPKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	//TODO: Authenticate user maybe?
 	var list []map[string]string
@@ -236,14 +272,14 @@ func ListPGPKeys(w http.ResponseWriter, req *http.Request) error {
 
 	w.Header().Set("Content-Type", "text/json")
 	JsonEncode.Encode(list)
-	return nil
+	return nil, rc
 }
 
 // GeneratePGPKey will create a new private/public gpg key pair
 // and return the private key id and public key.
-func GeneratePGPKey(w http.ResponseWriter, req *http.Request) error {
+func GeneratePGPKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
-	JsonDecode := json.NewDecoder(req.Body)
+	JsonDecode := json.NewDecoder(rc.Body)
 
 	type RequestNewPGP struct {
 		Key     string
@@ -259,7 +295,7 @@ func GeneratePGPKey(w http.ResponseWriter, req *http.Request) error {
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Invalid JSON in Request Body")
 		log.Println(err)
-		return nil //return error in future
+		return nil, rc //return error in future
 	}
 
 	//TODO: Some authentication needed
@@ -269,20 +305,20 @@ func GeneratePGPKey(w http.ResponseWriter, req *http.Request) error {
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Unable to create PGP key based on input")
 		log.Println(err)
-		return nil //return error in future
+		return nil, rc //return error in future
 	}
 
 	f, err := os.OpenFile(config.Config.KeyRingFilePath, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return nil, rc
 	}
 	defer f.Close()
 
 	NewEntity.SerializePrivate(f, nil)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return nil, rc
 	}
 
 	// Reload the Keyring after the new key is saved.
@@ -302,13 +338,13 @@ func GeneratePGPKey(w http.ResponseWriter, req *http.Request) error {
 	w.Header().Set("Content-Type", "text/json")
 	p := &ReturnNewPGP{NewEntityId, NewEntityPublicKey}
 	JsonEncode.Encode(*p)
-	return nil
+	return nil, rc
 }
 
 // IssueJWT return a valid jwt with these statically defined scope values.
-func IssueJWT(w http.ResponseWriter, req *http.Request) error {
+func IssueJWT(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
-	JsonDecode := json.NewDecoder(req.Body)
+	JsonDecode := json.NewDecoder(rc.Body)
 
 	type RequestNewJWT struct {
 		Key   string
@@ -322,7 +358,7 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) error {
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Invalid JSON in Request Body")
 		log.Println(err)
-		return nil //return error in future
+		return nil, rc //return error in future
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -336,20 +372,20 @@ func IssueJWT(w http.ResponseWriter, req *http.Request) error {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "Unable to generate jwt token")
-		return nil //return error in future
+		return nil, rc //return error in future
 	}
 	io.WriteString(w, tokenString)
-	return nil
+	return nil, rc
 
 }
 
 // HandleRequest the route for all decryption requests
-func HandleRequest(w http.ResponseWriter, req *http.Request) (error) {
+func HandleRequest(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
-	json := json.NewDecoder(req.Body)
+	json := json.NewDecoder(rc.Body)
 
 	type RequestDecrypt struct {
-		Key         string
+		Key	 string
 		GpgContents string
 	}
 
@@ -360,7 +396,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) (error) {
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Invalid JSON in Request Body")
 		log.Println(err)
-		return nil //return error in future
+		return nil, rc //return error in future
 	}
 
 	//Validate JWT
@@ -380,7 +416,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) (error) {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Unauthorized")
-		return nil //return error in future
+		return nil, rc //return error in future
 	}
-	return nil
+	return nil, rc
 }
