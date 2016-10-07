@@ -45,6 +45,11 @@ func main() {
 		token.IsValid,
 		encryption.ListKeys,
 	))
+	http.Handle("/key/get", Handle(
+		request.ParseRequest,
+		token.IsValid,
+		encryption.GetKey,
+	))
 
 	log.Fatal(server.ListenAndServe())
 }

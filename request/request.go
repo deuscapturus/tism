@@ -17,6 +17,7 @@ type Request struct {
 	Name        string   `json:"name"`
 	Comment     string   `json:"comment"`
 	Email       string   `json:"email"`
+	Id          string   `json:"id"`
 }
 
 var req = Request{}

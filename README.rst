@@ -53,6 +53,13 @@ List Keys
 
   curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODQ2MDM1NDUsImp0aSI6IjZrZWpydDA2cm5xcTMiLCJzY29wZXMiOlsiODE1Zjk5ZjhmOWQ0MzVlMyJdfQ.wZl8-aw0nSx0zL0dv2Xy1UYe0Pcay6JUwZ5oO_isWD0"}' http://localhost:8080/key/list
 
+Get Key by Id
+-------------
+
+.. code::
+
+  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODQ2MDM1NDUsImp0aSI6IjZrZWpydDA2cm5xcTMiLCJzY29wZXMiOlsiODE1Zjk5ZjhmOWQ0MzVlMyJdfQ.wZl8-aw0nSx0zL0dv2Xy1UYe0Pcay6JUwZ5oO_isWD0","id":"13ec80c75c697055"}' http://localhost:8080/key/get
+
 
 Issue a new Token
 -----------------
