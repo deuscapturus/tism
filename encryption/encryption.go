@@ -21,6 +21,11 @@ type MyEntityList struct {
 	openpgp.EntityList
 }
 
+type PublicKey struct {
+	Id     string
+	PubKey string
+}
+
 var KeyRing = MyEntityList{}
 
 // Decrypt decrypt the given string.
@@ -83,6 +88,27 @@ func ListKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	return nil, rc
 }
 
+func GetKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+
+	var req request.Request
+	req = rc.Context().Value("request").(request.Request)
+	EntityId, err := strconv.ParseUint(req.Id, 16, 64)
+	if err != nil {
+		return err, rc
+	}
+
+	ThisKey := KeyRing.KeysById(EntityId)
+
+	JsonEncode := json.NewEncoder(w)
+
+	w.Header().Set("Content-Type", "text/json")
+	// TODO: KeysById returns a slice, though there should only ever be one id per key.  For now assume only one key is ever returned.  Re-consider in the future.
+	p := &PublicKey{req.Id, PubEntToAsciiArmor(ThisKey[0].Entity)}
+	JsonEncode.Encode(*p)
+	return nil, rc
+
+}
+
 // NewKey will create a new private/public gpg key pair
 // and return the private key id and public key.
 func NewKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
@@ -113,11 +139,6 @@ func NewKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	// Reload the Keyring after the new key is saved.
 	defer KeyRing.GetKeyRing()
 
-	type ReturnNewPGP struct {
-		Id     string
-		PubKey string
-	}
-
 	// Return the id and pub key in json
 	JsonEncode := json.NewEncoder(w)
 
@@ -125,7 +146,7 @@ func NewKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	NewEntityPublicKey := PubEntToAsciiArmor(NewEntity)
 
 	w.Header().Set("Content-Type", "text/json")
-	p := &ReturnNewPGP{NewEntityId, NewEntityPublicKey}
+	p := &PublicKey{NewEntityId, NewEntityPublicKey}
 	JsonEncode.Encode(*p)
 	return nil, rc
 }
