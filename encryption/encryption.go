@@ -22,8 +22,8 @@ type MyEntityList struct {
 }
 
 type PublicKey struct {
-	Id     string
-	PubKey string
+	Id     string `json:"id"`
+	PubKey string `json:"pubkey"`
 }
 
 var KeyRing = MyEntityList{}
