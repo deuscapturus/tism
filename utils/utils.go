@@ -2,12 +2,12 @@ package utils
 
 // StringInSlice is self explanatory.  Return true or false.
 func StringInSlice(s string, slice []string) bool {
-        for _, item := range slice {
-                if s == item {
-                        return true
-                }
-        }
-        return false
+	for _, item := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
 
 func AllStringsInSlice(strings []string, slice []string) bool {

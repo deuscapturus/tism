@@ -12,13 +12,12 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 )
 
 type JwtClaimsMap struct {
 	Keys  []string `json:"keys"`
-	Admin int   `json:"admin"`
+	Admin int      `json:"admin"`
 	JWTid string   `json:"jti"`
 	jwt.StandardClaims
 }
@@ -35,30 +34,9 @@ func parseToken(t string) (token *jwt.Token, err error) {
 	}
 	token, err = jwt.ParseWithClaims(t, &JwtClaimsMap{}, signingSecret)
 	if err != nil {
-		log.Println(t)
 		log.Println(err)
 	}
 	return token, err
-}
-
-// Scope return a list of key ids from the token scope.
-func Scope(t string) []uint64 {
-
-	token, err := parseToken(t)
-	if err != nil {
-		log.Println(err)
-	}
-
-	var claims []uint64
-
-	for _, j := range token.Claims.(*JwtClaimsMap).Keys {
-		j, err := strconv.ParseUint(j, 16, 64)
-		if err != nil {
-			log.Println(err)
-		}
-		claims = append(claims, j)
-	}
-	return claims
 }
 
 func Parse(w http.ResponseWriter, rc http.Request) (error, http.Request) {
@@ -94,7 +72,6 @@ func Parse(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	return errors.New("Token is not valid"), rc
 }
 
-
 // IssueJWT return a valid jwt with these statically defined scope values.
 func New(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
@@ -104,26 +81,25 @@ func New(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	authKeys := rc.Context().Value("claims")
 	if rc.Context().Value("admin").(int) >= 0 {
 		switch authKeys.(type) {
-			case string:
-				if authKeys.(string) != "ALL" {
-					log.Println("A valid token is not configured correctly.")
-					return errors.New("Permission Denied.  Requested Keys are not in requestors allowed scope"), rc
-				}
-			case []string:
-				if !utils.AllStringsInSlice(req.Keys, rc.Context().Value("claims").([]string)) {
-					log.Println("Requested Keys are not in requestors allowed")
-					return errors.New("Permission Denied.  Requested Keys are not in requestors allowed scope"), rc
-				}
+		case string:
+			if authKeys.(string) != "ALL" {
+				log.Println("A valid token is not configured correctly.")
+				return errors.New("Permission Denied.  Requested Keys are not in requestors allowed scope"), rc
+			}
+		case []string:
+			if !utils.AllStringsInSlice(req.Keys, rc.Context().Value("claims").([]string)) {
+				log.Println("Requested Keys are not in requestors allowed")
+				return errors.New("Permission Denied.  Requested Keys are not in requestors allowed scope"), rc
+			}
 		}
 	} else {
 		return errors.New("Permission Denied.  Not an admin token"), rc
 	}
 
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"keys": req.Keys,
-		"exp":    time.Now().Add(time.Hour * 30303).Unix(),
-		"jti":    randid.Generate(32),
+		"keys":  req.Keys,
+		"exp":   time.Now().Add(time.Hour * 30303).Unix(),
+		"jti":   randid.Generate(32),
 		"admin": req.Admin,
 	})
 

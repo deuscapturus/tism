@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-//	"errors"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"io/ioutil"
@@ -29,7 +28,6 @@ type PublicKey struct {
 
 var KeyRing = MyEntityList{}
 
-
 func SetMyKeyRing(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	var MyKeyRing openpgp.EntityList
@@ -37,20 +35,19 @@ func SetMyKeyRing(w http.ResponseWriter, rc http.Request) (error, http.Request) 
 	AuthorizedKeys := rc.Context().Value("claims")
 
 	switch AuthorizedKeys.(type) {
-		case string:
-			if AuthorizedKeys.(string) == "ALL" {
-				// call ReadMessage with KeyRing.DecryptionKeys
-				MyKeyRing = KeyRing.EntityList
+	case string:
+		if AuthorizedKeys.(string) == "ALL" {
+			MyKeyRing = KeyRing.EntityList
+		}
+	case []string:
+		// Assemble a new entity list based on the outcome of KeysById
+		keys := AuthorizedKeys.([]string)
+		keysUint64 := stringsToUint64(keys)
+		for _, keyid := range keysUint64 {
+			for _, thisk := range KeyRing.KeysById(keyid) {
+				MyKeyRing = append(MyKeyRing, thisk.Entity)
 			}
-		case []string:
-			// Assemble a new entity list based on the outcome of KeysById
-			keys := AuthorizedKeys.([]string)
-			keysUint64 := stringsToUint64(keys)
-			for _, keyid := range keysUint64 {
-				for _, thisk := range  KeyRing.KeysById(keyid) {
-					MyKeyRing = append(MyKeyRing, thisk.Entity)
-				}
-			}
+		}
 	}
 
 	context := context.WithValue(rc.Context(), "MyKeyRing", MyKeyRing)
@@ -124,7 +121,7 @@ func GetKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	w.Header().Set("Content-Type", "text/json")
 	// TODO: KeysById returns a slice, though there should only ever be one id per key.  For now assume only one key is ever returned.  Re-consider in the future.
-	p := &PublicKey{req.Id, PubEntToAsciiArmor(ThisKey[0].Entity)}
+	p := &PublicKey{req.Id, pubEntToAsciiArmor(ThisKey[0].Entity)}
 	JsonEncode.Encode(*p)
 	return nil, rc
 
@@ -164,7 +161,7 @@ func NewKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	JsonEncode := json.NewEncoder(w)
 
 	NewEntityId := strconv.FormatUint(NewEntity.PrimaryKey.KeyId, 16)
-	NewEntityPublicKey := PubEntToAsciiArmor(NewEntity)
+	NewEntityPublicKey := pubEntToAsciiArmor(NewEntity)
 
 	w.Header().Set("Content-Type", "text/json")
 	p := &PublicKey{NewEntityId, NewEntityPublicKey}
@@ -172,19 +169,8 @@ func NewKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	return nil, rc
 }
 
-// StringInSlice is self explanatory.  Return true or false.
-func StringInSlice(s string, slice []string) bool {
-	for _, item := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
-}
-
-// Scope return a list of key ids from the token scope.
+// stringsToUint64 convert a slice of strings to uint64.
 func stringsToUint64(s []string) []uint64 {
-
 
 	var uint64List []uint64
 
@@ -228,8 +214,8 @@ func (KeyRing *MyEntityList) GetKeyRing() {
 	return
 }
 
-//PubEntToAsciiArmor create Ascii Armor from openpgp.Entity
-func PubEntToAsciiArmor(pubEnt *openpgp.Entity) (asciiEntity string) {
+// pubEntToAsciiArmor create Ascii Armor from openpgp.Entity
+func pubEntToAsciiArmor(pubEnt *openpgp.Entity) (asciiEntity string) {
 
 	gotWriter := bytes.NewBuffer(nil)
 	wr, err := armor.Encode(gotWriter, openpgp.PublicKeyType, nil)
