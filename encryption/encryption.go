@@ -5,6 +5,7 @@ import (
 	"../config"
 	"../request"
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 //	"errors"
@@ -28,10 +29,39 @@ type PublicKey struct {
 
 var KeyRing = MyEntityList{}
 
+
+func SetMyKeyRing(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+
+	var MyKeyRing openpgp.EntityList
+
+	AuthorizedKeys := rc.Context().Value("claims")
+
+	switch AuthorizedKeys.(type) {
+		case string:
+			if AuthorizedKeys.(string) == "ALL" {
+				// call ReadMessage with KeyRing.DecryptionKeys
+				MyKeyRing = KeyRing.EntityList
+			}
+		case []string:
+			// Assemble a new entity list based on the outcome of KeysById
+			keys := AuthorizedKeys.([]string)
+			keysUint64 := stringsToUint64(keys)
+			for _, keyid := range keysUint64 {
+				for _, thisk := range  KeyRing.KeysById(keyid) {
+					MyKeyRing = append(MyKeyRing, thisk.Entity)
+				}
+			}
+	}
+
+	context := context.WithValue(rc.Context(), "MyKeyRing", MyKeyRing)
+	return nil, *rc.WithContext(context)
+}
+
 // Decrypt decrypt the given string.
 func Decrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	req := rc.Context().Value("request").(request.Request)
+	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
 
 	dec, err := base64.StdEncoding.DecodeString(req.EncSecret)
 	if err != nil {
@@ -40,37 +70,11 @@ func Decrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 		return err, rc
 	}
 
-	authKeys := rc.Context().Value("claims")
-	var md *openpgp.MessageDetails
-
-	switch authKeys.(type) {
-		case string:
-			if authKeys.(string) == "ALL" {
-				// call ReadMessage with KeyRing.DecryptionKeys
-				md, err = openpgp.ReadMessage(bytes.NewBuffer(dec), KeyRing, nil, nil)
-				if err != nil {
-					log.Println(err)
-					w.WriteHeader(http.StatusInternalServerError)
-					return err, rc
-				}
-			}
-		case []string:
-			// Assemble a new entity list based on the outcome of KeysById
-			var k openpgp.EntityList
-			keys := authKeys.([]string)
-			keysUint64 := stringsToUint64(keys)
-			for _, keyid := range keysUint64 {
-				for _, thisk := range  KeyRing.KeysById(keyid) {
-					k = append(k, thisk.Entity)
-				}
-			}
-			md, err = openpgp.ReadMessage(bytes.NewBuffer(dec), k, nil, nil)
-				if err != nil {
-					log.Println(err)
-					w.WriteHeader(http.StatusInternalServerError)
-					return err, rc
-				}
-
+	md, err := openpgp.ReadMessage(bytes.NewBuffer(dec), MyKeyRing, nil, nil)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return err, rc
 	}
 
 	message, err := ioutil.ReadAll(md.UnverifiedBody)
