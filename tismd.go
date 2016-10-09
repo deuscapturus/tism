@@ -52,6 +52,7 @@ func main() {
 	http.Handle("/key/get", Handle(
 		request.ParseRequest,
 		token.Parse,
+		encryption.SetMyKeyRing,
 		encryption.GetKey,
 	))
 

@@ -90,9 +90,8 @@ func ListKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	var list []map[string]string
 	JsonEncode := json.NewEncoder(w)
-	log.Println("hi")
+
 	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
-	log.Println(MyKeyRing)
 
 	for _, entity := range MyKeyRing {
 		m := make(map[string]string)
@@ -111,6 +110,8 @@ func ListKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 func GetKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
+	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
+
 	var req request.Request
 	req = rc.Context().Value("request").(request.Request)
 	EntityId, err := strconv.ParseUint(req.Id, 16, 64)
@@ -118,7 +119,7 @@ func GetKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 		return err, rc
 	}
 
-	ThisKey := KeyRing.KeysById(EntityId)
+	ThisKey := MyKeyRing.KeysById(EntityId)
 
 	JsonEncode := json.NewEncoder(w)
 
