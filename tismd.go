@@ -26,29 +26,29 @@ func main() {
 	//Routes
 	http.Handle("/decrypt", Handle(
 		request.ParseRequest,
-		token.IsValid,
+		token.Parse,
 		token.GetAllowedKeys,
 		encryption.Decrypt,
 	))
 	http.Handle("/token/new", Handle(
 		request.ParseRequest,
-		token.IsValid,
-		token.IssueToken,
+		token.Parse,
+		token.New,
 	))
 	http.Handle("/key/new", Handle(
 		request.ParseRequest,
-		token.IsValid,
+		token.Parse,
 		encryption.NewKey,
 	))
 	http.Handle("/key/list", Handle(
 		request.ParseRequest,
-		token.IsValid,
+		token.Parse,
 		encryption.ListKeys,
 	))
 
 	http.Handle("/key/get", Handle(
 		request.ParseRequest,
-		token.IsValid,
+		token.Parse,
 		encryption.GetKey,
 	))
 

@@ -11,7 +11,8 @@ import (
 // Request put fields for all requests in this struct.
 type Request struct {
 	Token       string   `json:"token"`
-	Scope       []string `json:"Scope"`
+	Keys        []string `json:"keys"`
+	Admin       int      `json:"admin"`
 	GpgContents string   `json:"GpgContents"`
 	Key         string   `json:"key"`
 	Name        string   `json:"name"`

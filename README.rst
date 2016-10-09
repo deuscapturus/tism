@@ -36,7 +36,7 @@ Create New Encryption Key
 
 .. code::
 
-  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODQ2MDM1NDUsImp0aSI6IjZrZWpydDA2cm5xcTMiLCJzY29wZXMiOlsiODE1Zjk5ZjhmOWQ0MzVlMyJdfQ.wZl8-aw0nSx0zL0dv2Xy1UYe0Pcay6JUwZ5oO_isWD0", "name":"it-operations", "comment":"Production Environment","email":"it-ops@test.com"}' http://localhost:8080/key/new
+  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo", "name":"it-operations", "comment":"Production Environment","email":"it-ops@test.com"}' http://localhost:8080/key/new
 
 Encrypt a Message
 -----------------
@@ -51,26 +51,26 @@ List Keys
 
 .. code::
 
-  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODQ2MDM1NDUsImp0aSI6IjZrZWpydDA2cm5xcTMiLCJzY29wZXMiOlsiODE1Zjk5ZjhmOWQ0MzVlMyJdfQ.wZl8-aw0nSx0zL0dv2Xy1UYe0Pcay6JUwZ5oO_isWD0"}' http://localhost:8080/key/list
+  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo"}' http://localhost:8080/key/list
 
 Get Key by Id
 -------------
 
 .. code::
 
-  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODQ2MDM1NDUsImp0aSI6IjZrZWpydDA2cm5xcTMiLCJzY29wZXMiOlsiODE1Zjk5ZjhmOWQ0MzVlMyJdfQ.wZl8-aw0nSx0zL0dv2Xy1UYe0Pcay6JUwZ5oO_isWD0","id":"13ec80c75c697055"}' http://localhost:8080/key/get
+  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo","id":"13ec80c75c697055"}' http://localhost:8080/key/get
 
 Issue a new Token
 -----------------
 
 .. code::
 
-  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODQ2MDM1NDUsImp0aSI6IjZrZWpydDA2cm5xcTMiLCJzY29wZXMiOlsiODE1Zjk5ZjhmOWQ0MzVlMyJdfQ.wZl8-aw0nSx0zL0dv2Xy1UYe0Pcay6JUwZ5oO_isWD0","Scope":["815f99f8f9d435e3","13ec80c75c697055"]' http://localhost:8080/token/new
+  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo","keys":["815f99f8f9d435e3","13ec80c75c697055"]' http://localhost:8080/token/new
 
 Decrypt a Secret
 ----------------
 
 .. code::
 
-  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODQ4ODIwMzEsImp0aSI6IjF1bjl1NDE0bnF1aDYiLCJzY29wZXMiOlsiODE1Zjk5ZjhmOWQ0MzVlMyIsIjEzZWM4MGM3NWM2OTcwNTUiXX0.WXzebeL0Z1UP8jhja2z3WQ9Pn9HQ1gtnVyK6_W210lc","GpgContents":"hQEMAzJ+GfdAB3KqAQf+J/LwHFevlL35lZ5W575/QR9DGbWGZGaukDw9OtPDU0EIUvsTdidJweUV1zCuDCOzfE0AZCBebREwcA7z2N+8h3FP9h6otgnrRjkk1rdzIRBN48n6ojFOafIWNOEVFlkD3R9wA4iYx7Ma/GZoKf7cjJciWT59bW95gvnJUaSOOqSpgHKnz/X8KXkFJNkc5wrlPKir1XeI7YNTGbOPDsMXQ83Jrl9fsHr9/r/oPX33yGq7TOeSaCTH37XxPSwskRhM+wuOcobfxH9MxVGnZZf+gOBxD77KFvTN53pboh6wMoDMeera0ScT79XdrooIaRR0hbSJIDZhrPQ3GTZeftNXn8kqE1qgh7zGD9nMfUEL2Y4VOJVyKwzvsRAWTAJFMVzcolSAYCFF9ASkIk7Q"}"}' http://localhost:8080/decrypt
+  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo   ","GpgContents":"hQEMAzJ+GfdAB3KqAQf+J/LwHFevlL35lZ5W575/QR9DGbWGZGaukDw9OtPDU0EIUvsTdidJweUV1zCuDCOzfE0AZCBebREwcA7z2N+8h3FP9h6otgnrRjkk1rdzIRBN48n6ojFOafIWNOEVFlkD3R9wA4iYx7Ma/GZoKf7cjJciWT59bW95gvnJUaSOOqSpgHKnz/X8KXkFJNkc5wrlPKir1XeI7YNTGbOPDsMXQ83Jrl9fsHr9/r/oPX33yGq7TOeSaCTH37XxPSwskRhM+wuOcobfxH9MxVGnZZf+gOBxD77KFvTN53pboh6wMoDMeera0ScT79XdrooIaRR0hbSJIDZhrPQ3GTZeftNXn8kqE1qgh7zGD9nMfUEL2Y4VOJVyKwzvsRAWTAJFMVzcolSAYCFF9ASkIk7Q"}"}' http://localhost:8080/decrypt
 
