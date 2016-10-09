@@ -106,14 +106,7 @@ func New(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 		return errors.New("Permission Denied.  Not an admin token"), rc
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"keys":  req.Keys,
-		"exp":   time.Now().Add(time.Hour * 30303).Unix(),
-		"jti":   randid.Generate(32),
-		"admin": req.Admin,
-	})
-
-	tokenString, err := token.SignedString([]byte(config.Config.JWTsecret))
+	tokenString, err := GenerateToken(req.Keys, time.Now().Add(time.Hour * 30303).Unix(), randid.Generate(32), req.Admin)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -122,6 +115,21 @@ func New(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	io.WriteString(w, tokenString)
 	return nil, rc
+}
 
-	return errors.New("Permission Denied"), rc
+func GenerateToken(keys []string, exp int64, jti string, admin int) (string, error) {
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"keys":  keys,
+		"exp":   exp,
+		"jti":   jti,
+		"admin": admin,
+	})
+
+	tokenString, err := token.SignedString([]byte(config.Config.JWTsecret))
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+	return tokenString, err
 }

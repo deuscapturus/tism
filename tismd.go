@@ -3,6 +3,7 @@ package main
 
 import (
 	"./config"
+	"./randid"
 	"./encryption"
 	"./request"
 	"./token"
@@ -16,6 +17,15 @@ func main() {
 	config.Load()
 
 	encryption.KeyRing.GetKeyRing()
+
+	if config.Config.GenAdminToken {
+		adminToken, err := token.GenerateToken([]string{"ALL"}, 99999999999, randid.Generate(32), 1)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println(adminToken)
+	}
+
 
 	server := http.Server{
 		Addr: ":8080",

@@ -13,6 +13,7 @@ type Configuration struct {
 	RevokedJWTs     []string `yaml:"revoked_api_keys,omitempty"`
 	JWTsecret       string   `yaml:"token_secret,omitempty"`
 	KeyRingFilePath string   `yaml:"keyring_path,omitempty"`
+	GenAdminToken   bool
 }
 
 var Config *Configuration
@@ -20,7 +21,8 @@ var Config *Configuration
 // LoadConfiguration load athe configuration from the provided confioguration path.
 func Load() {
 
-	ConfigPath := flag.String("config", "config.yaml", "Configuration file path (config.yaml)")
+	ConfigPath := flag.String("config", "config.yaml", "Configuration file path.")
+	GenAdminToken := flag.Bool("t", false, "Generate a super admin token")
 
 	flag.Parse()
 
@@ -32,5 +34,7 @@ func Load() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	Config.GenAdminToken = *GenAdminToken
 
 }
