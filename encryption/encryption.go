@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"io/ioutil"
@@ -120,6 +121,10 @@ func GetKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	}
 
 	ThisKey := MyKeyRing.KeysById(EntityId)
+	if ThisKey == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return errors.New("Key not found"), rc
+	}
 
 	JsonEncode := json.NewEncoder(w)
 
