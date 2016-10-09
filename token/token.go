@@ -34,6 +34,10 @@ func parseToken(t string) (token *jwt.Token, err error) {
 		return []byte(config.Config.JWTsecret), nil
 	}
 	token, err = jwt.ParseWithClaims(t, &JwtClaimsMap{}, signingSecret)
+	if err != nil {
+		log.Println(t)
+		log.Println(err)
+	}
 	return token, err
 }
 
@@ -57,31 +61,9 @@ func Scope(t string) []uint64 {
 	return claims
 }
 
-func IsValid(w http.ResponseWriter, rc http.Request) (error, http.Request) {
-	var req request.Request
-	req = rc.Context().Value("request").(request.Request)
-
-	token, err := parseToken(req.Token)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Header().Set("Content-Type", "text/plain")
-		return err, rc
-	}
-
-	if token.Valid {
-		return nil, rc
-	} else {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Header().Set("Content-Type", "text/plain")
-		return errors.New("Token is not valid"), rc
-	}
-	return nil, rc
-}
-
 func Parse(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	var req request.Request
 	req = rc.Context().Value("request").(request.Request)
-
 	token, err := parseToken(req.Token)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -112,32 +94,6 @@ func Parse(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	return errors.New("Token is not valid"), rc
 }
 
-func GetAllowedKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
-	var req request.Request
-	req = rc.Context().Value("request").(request.Request)
-
-	token, err := parseToken(req.Token)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Header().Set("Content-Type", "text/plain")
-		return err, rc
-	}
-
-	var claims []string
-	claims = token.Claims.(*JwtClaimsMap).Keys
-//	var claims []uint64
-//	for _, j := range token.Claims.(*JwtClaimsMap).Keys {
-//		j, err := strconv.ParseUint(j, 16, 64)
-//		if err != nil {
-//			log.Println(err)
-//			return err, rc
-//		}
-//		claims = append(claims, j)
-//	}
-
-	context := context.WithValue(rc.Context(), "claims", claims)
-	return nil, *rc.WithContext(context)
-}
 
 // IssueJWT return a valid jwt with these statically defined scope values.
 func New(w http.ResponseWriter, rc http.Request) (error, http.Request) {

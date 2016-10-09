@@ -27,7 +27,6 @@ func main() {
 	http.Handle("/decrypt", Handle(
 		request.ParseRequest,
 		token.Parse,
-		token.GetAllowedKeys,
 		encryption.Decrypt,
 	))
 	http.Handle("/token/new", Handle(

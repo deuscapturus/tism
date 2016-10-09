@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
+//	"errors"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"io/ioutil"
@@ -29,42 +29,59 @@ type PublicKey struct {
 var KeyRing = MyEntityList{}
 
 // Decrypt decrypt the given string.
-// Do not return it if the decryption key is not in the k uint64 slice
 func Decrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
-	//var req request.Request
 	req := rc.Context().Value("request").(request.Request)
 
-	dec, err := base64.StdEncoding.DecodeString(req.GpgContents)
+	dec, err := base64.StdEncoding.DecodeString(req.EncSecret)
 	if err != nil {
 		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return err, rc
 	}
-	k := rc.Context().Value("claims").([]uint64)
-	//only load keys found in var k
-	for _, keyid := range k {
-		tryKeys := KeyRing.KeysById(keyid)
-		for _, tryKey := range tryKeys {
-			var TryKeyEntityList openpgp.EntityList
 
-			TryKeyEntityList = append(TryKeyEntityList, tryKey.Entity)
-			md, err := openpgp.ReadMessage(bytes.NewBuffer(dec), TryKeyEntityList, nil, nil)
-			if err != nil {
-				log.Println(err)
-				continue
+	authKeys := rc.Context().Value("claims")
+	var md *openpgp.MessageDetails
+
+	switch authKeys.(type) {
+		case string:
+			if authKeys.(string) == "ALL" {
+				// call ReadMessage with KeyRing.DecryptionKeys
+				md, err = openpgp.ReadMessage(bytes.NewBuffer(dec), KeyRing, nil, nil)
+				if err != nil {
+					log.Println(err)
+					w.WriteHeader(http.StatusInternalServerError)
+					return err, rc
+				}
 			}
-			message, err := ioutil.ReadAll(md.UnverifiedBody)
-			if err != nil {
-				log.Println(err)
-				continue
+		case []string:
+			// Assemble a new entity list based on the outcome of KeysById
+			var k openpgp.EntityList
+			keys := authKeys.([]string)
+			keysUint64 := stringsToUint64(keys)
+			for _, keyid := range keysUint64 {
+				for _, thisk := range  KeyRing.KeysById(keyid) {
+					k = append(k, thisk.Entity)
+				}
 			}
-			w.Write(message)
-			return nil, rc
-		}
+			md, err = openpgp.ReadMessage(bytes.NewBuffer(dec), k, nil, nil)
+				if err != nil {
+					log.Println(err)
+					w.WriteHeader(http.StatusInternalServerError)
+					return err, rc
+				}
+
 	}
-	w.WriteHeader(http.StatusInternalServerError)
-	return errors.New("Nothing Decrypted"), rc
 
+	message, err := ioutil.ReadAll(md.UnverifiedBody)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return err, rc
+	}
+
+	w.Write(message)
+	return nil, rc
 }
 
 // ListKeys return json list of keys with metadata including id.
@@ -159,6 +176,22 @@ func StringInSlice(s string, slice []string) bool {
 		}
 	}
 	return false
+}
+
+// Scope return a list of key ids from the token scope.
+func stringsToUint64(s []string) []uint64 {
+
+
+	var uint64List []uint64
+
+	for _, j := range s {
+		j, err := strconv.ParseUint(j, 16, 64)
+		if err != nil {
+			log.Println(err)
+		}
+		uint64List = append(uint64List, j)
+	}
+	return uint64List
 }
 
 // GetKeyRing return pgp keyring from a file location

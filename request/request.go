@@ -13,7 +13,7 @@ type Request struct {
 	Token       string   `json:"token"`
 	Keys        []string `json:"keys"`
 	Admin       int      `json:"admin"`
-	GpgContents string   `json:"GpgContents"`
+	EncSecret   string   `json:"encsecret"`
 	Key         string   `json:"key"`
 	Name        string   `json:"name"`
 	Comment     string   `json:"comment"`

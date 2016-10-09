@@ -51,7 +51,7 @@ List Keys
 
 .. code::
 
-  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo"}' http://localhost:8080/key/list
+  curl -s -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo"}' http://localhost:8080/key/list
 
 Get Key by Id
 -------------
@@ -65,12 +65,12 @@ Issue a new Token
 
 .. code::
 
-  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo","keys":["815f99f8f9d435e3","13ec80c75c697055"]' http://localhost:8080/token/new
+  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo","keys":["815f99f8f9d435e3","13ec80c75c697055"]}' http://localhost:8080/token/new
 
 Decrypt a Secret
 ----------------
 
 .. code::
 
-  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo   ","GpgContents":"hQEMAzJ+GfdAB3KqAQf+J/LwHFevlL35lZ5W575/QR9DGbWGZGaukDw9OtPDU0EIUvsTdidJweUV1zCuDCOzfE0AZCBebREwcA7z2N+8h3FP9h6otgnrRjkk1rdzIRBN48n6ojFOafIWNOEVFlkD3R9wA4iYx7Ma/GZoKf7cjJciWT59bW95gvnJUaSOOqSpgHKnz/X8KXkFJNkc5wrlPKir1XeI7YNTGbOPDsMXQ83Jrl9fsHr9/r/oPX33yGq7TOeSaCTH37XxPSwskRhM+wuOcobfxH9MxVGnZZf+gOBxD77KFvTN53pboh6wMoDMeera0ScT79XdrooIaRR0hbSJIDZhrPQ3GTZeftNXn8kqE1qgh7zGD9nMfUEL2Y4VOJVyKwzvsRAWTAJFMVzcolSAYCFF9ASkIk7Q"}"}' http://localhost:8080/decrypt
+  curl -H "Content-Type: application/json" -X POST -d '{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo","encsecret":"hQEMAzJ+GfdAB3KqAQf9E3cyvrPEWR1sf1tMvH0nrJ0bZa9kDFLPxvtwAOqlRiNp0F7IpiiVRF+h+sW5Mb4ffB1TElMzQ+/G5ptd6CjmgBfBsuGeajWmvLEi4lC6/9v1rYGjjLeOCCcN4Dl5AHlxUUaSrxB8akTDvSAnPvGhtRTZqDlltl5UEHsyYXM8RaeCrBw5Or1yvC9Ctx2saVp3xmALQvyhzkUv5pTb1mH0I9Z7E0ian07ZUOD+pVacDAf1oQcPpqkeNVTQQ15EP0fDuvnW+a0vxeLhkbFLfnwqhqEsvFxVFLHVLcs2ffE5cceeOMtVo7DS9fCtkdZr5hR7a+86n4hdKfwDMFXiBwSIPMkmY980N/H30L/r50+CBkuI/u4M2pXDcMYsvvt4ajCbJn91qaQ7BDI="}"}' http://localhost:8080/decrypt
 
