@@ -31,6 +31,18 @@ Message Encryption and Decryption is implemented with OpenPGP https://tools.ietf
 Quick Start
 ===========
 
+Start tismd
+-----------
+
+Use -t to generate a new admin token
+
+.. code::
+
+  # go run tismd.go -t
+  2016/10/09 14:10:19 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiM2I0YmZvc3VrYmV2YiIsImtleXMiOlsiQUxMIl19.kqdOTSybjQm3Je5j5PlRL8yi1hDqb1VrxuVImc7DVfY
+
+
+
 Create New Encryption Key
 -------------------------
 
