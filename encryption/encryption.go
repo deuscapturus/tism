@@ -90,8 +90,11 @@ func ListKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	var list []map[string]string
 	JsonEncode := json.NewEncoder(w)
+	log.Println("hi")
+	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
+	log.Println(MyKeyRing)
 
-	for _, entity := range KeyRing.EntityList {
+	for _, entity := range MyKeyRing {
 		m := make(map[string]string)
 		m["CreationTime"] = entity.PrimaryKey.CreationTime.String()
 		m["Id"] = strconv.FormatUint(entity.PrimaryKey.KeyId, 16)

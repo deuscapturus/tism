@@ -45,6 +45,7 @@ func main() {
 	http.Handle("/key/list", Handle(
 		request.ParseRequest,
 		token.Parse,
+		encryption.SetMyKeyRing,
 		encryption.ListKeys,
 	))
 
