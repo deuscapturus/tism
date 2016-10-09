@@ -10,12 +10,10 @@ import (
 	"net/http"
 )
 
-var ConfigFilePath = string("./config.yaml")
-
 // main function.  Start http server and provide routes.
 func main() {
 
-	config.Load(ConfigFilePath)
+	config.Load()
 
 	encryption.KeyRing.GetKeyRing()
 
