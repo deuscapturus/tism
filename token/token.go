@@ -72,6 +72,16 @@ func Parse(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	return errors.New("Token is not valid"), rc
 }
 
+// IsAdmin Only continue if the requestor is an admin.
+func IsAdmin(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+
+	admin := rc.Context().Value("admin").(int)
+	if admin >= 1 {
+		return nil, rc
+	}
+	return errors.New("Requestor is not admin"), rc
+}
+
 // IssueJWT return a valid jwt with these statically defined scope values.
 func New(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 

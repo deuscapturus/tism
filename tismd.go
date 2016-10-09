@@ -33,11 +33,13 @@ func main() {
 	http.Handle("/token/new", Handle(
 		request.ParseRequest,
 		token.Parse,
+		token.IsAdmin,
 		token.New,
 	))
 	http.Handle("/key/new", Handle(
 		request.ParseRequest,
 		token.Parse,
+		token.IsAdmin,
 		encryption.NewKey,
 	))
 	http.Handle("/key/list", Handle(
