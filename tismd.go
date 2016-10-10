@@ -3,8 +3,8 @@ package main
 
 import (
 	"./config"
-	"./randid"
 	"./encryption"
+	"./randid"
 	"./request"
 	"./token"
 	"crypto/tls"
@@ -27,7 +27,7 @@ func main() {
 		log.Println(adminToken)
 	}
 
-	TLSConfig := &tls.Config {
+	TLSConfig := &tls.Config{
 		MinVersion:               tls.VersionTLS12,
 		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
 		PreferServerCipherSuites: true,
@@ -39,9 +39,9 @@ func main() {
 		},
 	}
 
-	server := http.Server {
-		Addr: ":" + config.Config.Port,
-		TLSConfig: TLSConfig,
+	server := http.Server{
+		Addr:         ":" + config.Config.Port,
+		TLSConfig:    TLSConfig,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
 

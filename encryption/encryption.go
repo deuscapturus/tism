@@ -92,7 +92,7 @@ func Encrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	req := rc.Context().Value("request").(request.Request)
 	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
 
-//	RequestId := stringToUint64(req.Id)
+	//	RequestId := stringToUint64(req.Id)
 	DecSecret := []byte(req.DecSecret)
 
 	buf := new(bytes.Buffer)
@@ -228,6 +228,7 @@ func stringToUint64(s string) uint64 {
 	}
 	return suint64
 }
+
 // GetKeyRing return pgp keyring from a file location
 func (KeyRing *MyEntityList) GetKeyRing() {
 

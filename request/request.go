@@ -10,16 +10,16 @@ import (
 
 // Request put fields for all requests in this struct.
 type Request struct {
-	Token       string   `json:"token"`
-	Keys        []string `json:"keys"`
-	Admin       int      `json:"admin"`
-	EncSecret   string   `json:"encsecret"`
-	DecSecret   string   `json:"decsecret"`
-	Key         string   `json:"key"`
-	Name        string   `json:"name"`
-	Comment     string   `json:"comment"`
-	Email       string   `json:"email"`
-	Id          string   `json:"id"`
+	Token     string   `json:"token"`
+	Keys      []string `json:"keys"`
+	Admin     int      `json:"admin"`
+	EncSecret string   `json:"encsecret"`
+	DecSecret string   `json:"decsecret"`
+	Key       string   `json:"key"`
+	Name      string   `json:"name"`
+	Comment   string   `json:"comment"`
+	Email     string   `json:"email"`
+	Id        string   `json:"id"`
 }
 
 var req = Request{}
