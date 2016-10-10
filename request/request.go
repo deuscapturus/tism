@@ -14,6 +14,7 @@ type Request struct {
 	Keys        []string `json:"keys"`
 	Admin       int      `json:"admin"`
 	EncSecret   string   `json:"encsecret"`
+	DecSecret   string   `json:"decsecret"`
 	Key         string   `json:"key"`
 	Name        string   `json:"name"`
 	Comment     string   `json:"comment"`

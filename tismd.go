@@ -38,6 +38,12 @@ func main() {
 		encryption.SetMyKeyRing,
 		encryption.Decrypt,
 	))
+	http.Handle("/encrypt", Handle(
+		request.ParseRequest,
+		token.Parse,
+		encryption.SetMyKeyRing,
+		encryption.Encrypt,
+	))
 	http.Handle("/token/new", Handle(
 		request.ParseRequest,
 		token.Parse,

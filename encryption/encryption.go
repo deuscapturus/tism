@@ -86,6 +86,32 @@ func Decrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	return nil, rc
 }
 
+// Enctyp encrypt the given string.
+func Encrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+
+	req := rc.Context().Value("request").(request.Request)
+	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
+
+//	RequestId := stringToUint64(req.Id)
+	DecSecret := []byte(req.DecSecret)
+
+	buf := new(bytes.Buffer)
+	EncWriter, err := openpgp.Encrypt(buf, MyKeyRing, nil, nil, nil)
+	if err != nil {
+		return err, rc
+	}
+
+	_, err = EncWriter.Write(DecSecret)
+	if err != nil {
+		return err, rc
+	}
+
+	w.Header().Set("Content-Type", "text/text")
+	w.Write(buf.Bytes())
+
+	return nil, rc
+}
+
 // ListKeys return json list of keys with metadata including id.
 func ListKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
@@ -193,6 +219,15 @@ func stringsToUint64(s []string) []uint64 {
 	return uint64List
 }
 
+// stringsToUint64 convert string to uint64.
+func stringToUint64(s string) uint64 {
+
+	suint64, err := strconv.ParseUint(s, 16, 64)
+	if err != nil {
+		log.Println(err)
+	}
+	return suint64
+}
 // GetKeyRing return pgp keyring from a file location
 func (KeyRing *MyEntityList) GetKeyRing() {
 
