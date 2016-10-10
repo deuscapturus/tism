@@ -47,38 +47,38 @@ func main() {
 
 	//Routes
 	http.Handle("/decrypt", Handle(
-		request.ParseRequest,
+		request.Parse,
 		token.Parse,
 		encryption.SetMyKeyRing,
 		encryption.Decrypt,
 	))
 	http.Handle("/encrypt", Handle(
-		request.ParseRequest,
+		request.Parse,
 		token.Parse,
 		encryption.SetMyKeyRing,
 		encryption.Encrypt,
 	))
 	http.Handle("/token/new", Handle(
-		request.ParseRequest,
+		request.Parse,
 		token.Parse,
 		token.IsAdmin,
 		token.New,
 	))
 	http.Handle("/key/new", Handle(
-		request.ParseRequest,
+		request.Parse,
 		token.Parse,
 		token.IsAdmin,
 		encryption.NewKey,
 	))
 	http.Handle("/key/list", Handle(
-		request.ParseRequest,
+		request.Parse,
 		token.Parse,
 		encryption.SetMyKeyRing,
 		encryption.ListKeys,
 	))
 
 	http.Handle("/key/get", Handle(
-		request.ParseRequest,
+		request.Parse,
 		token.Parse,
 		encryption.SetMyKeyRing,
 		encryption.GetKey,
