@@ -7,6 +7,7 @@ import (
 	"./encryption"
 	"./request"
 	"./token"
+	"crypto/tls"
 	"log"
 	"net/http"
 )
@@ -26,9 +27,22 @@ func main() {
 		log.Println(adminToken)
 	}
 
+	TLSConfig := &tls.Config {
+		MinVersion:               tls.VersionTLS12,
+		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+		PreferServerCipherSuites: true,
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+			tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+		},
+	}
 
-	server := http.Server{
+	server := http.Server {
 		Addr: ":8080",
+		TLSConfig: TLSConfig,
+		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
 
 	//Routes
@@ -70,7 +84,7 @@ func main() {
 		encryption.GetKey,
 	))
 
-	log.Fatal(server.ListenAndServe())
+	log.Fatal(server.ListenAndServeTLS(config.Config.TLSCertFile, config.Config.TLSKeyFile))
 }
 
 type Handler func(w http.ResponseWriter, rc http.Request) (error, http.Request)

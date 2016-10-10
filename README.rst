@@ -46,14 +46,14 @@ Create New Encryption Key
 
 .. code::
 
-  curl -H "Content-Type: application/json" -X POST \
+  curl -k -H "Content-Type: application/json" -X POST \
   -d '{
       "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo",
       "name" : "it-operations",
       "comment" : "Production Environment",
       "email" : "it-ops@test.com"
     }' \
-  http://localhost:8080/key/new
+  https://localhost:8080/key/new
 
 Encrypt a Message
 -----------------
@@ -67,44 +67,44 @@ List Keys
 
 .. code::
 
-  curl -s -H "Content-Type: application/json" -X POST \
+  curl -k -s -H "Content-Type: application/json" -X POST \
   -d '{
       "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo"
   }' \
-  http://localhost:8080/key/list
+  https://localhost:8080/key/list
 
 Get Key by Id
 -------------
 
 .. code::
 
-  curl -H "Content-Type: application/json" -X POST \
+  curl -k -H "Content-Type: application/json" -X POST \
   -d '{
       "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo",
       "id" : "13ec80c75c697055"
   }' \
-  http://localhost:8080/key/get
+  https://localhost:8080/key/get
 
 Issue a new Token
 -----------------
 
 .. code::
 
-  curl -H "Content-Type: application/json" -X POST \
+  curl -k -H "Content-Type: application/json" -X POST \
   -d '{
       "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo",
       "keys" : ["815f99f8f9d435e3","13ec80c75c697055"]
   }' \
-  http://localhost:8080/token/new
+  https://localhost:8080/token/new
 
 Decrypt a Secret
 ----------------
 
 .. code::
 
-  curl -H "Content-Type: application/json" -X POST \
+  curl -k -H "Content-Type: application/json" -X POST \
   -d '{
       "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo",
       "encsecret" : "hQEMAzJ+GfdAB3KqAQf9E3cyvrPEWR1sf1tMvH0nrJ0bZa9kDFLPxvtwAOqlRiNp0F7IpiiVRF+h+sW5Mb4ffB1TElMzQ+/G5ptd6CjmgBfBsuGeajWmvLEi4lC6/9v1rYGjjLeOCCcN4Dl5AHlxUUaSrxB8akTDvSAnPvGhtRTZqDlltl5UEHsyYXM8RaeCrBw5Or1yvC9Ctx2saVp3xmALQvyhzkUv5pTb1mH0I9Z7E0ian07ZUOD+pVacDAf1oQcPpqkeNVTQQ15EP0fDuvnW+a0vxeLhkbFLfnwqhqEsvFxVFLHVLcs2ffE5cceeOMtVo7DS9fCtkdZr5hR7a+86n4hdKfwDMFXiBwSIPMkmY980N/H30L/r50+CBkuI/u4M2pXDcMYsvvt4ajCbJn91qaQ7BDI="
   }' \
-  http://localhost:8080/decrypt
+  https://localhost:8080/decrypt

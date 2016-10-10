@@ -1,4 +1,6 @@
 port: 8080
+tls_cert_file: "./tls/cert.crt" 
+tls_key_file:  "./tls/cert.key"
 keyring_path: "./gpgkeys/secring.gpg"
 
 # jwt_secret The secret used to sign all JWT's.  If this is changed all previosly signed tokens will become invalid.
