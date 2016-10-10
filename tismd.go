@@ -40,7 +40,7 @@ func main() {
 	}
 
 	server := http.Server {
-		Addr: ":8080",
+		Addr: ":" + config.Config.Port,
 		TLSConfig: TLSConfig,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
