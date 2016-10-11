@@ -2,13 +2,13 @@
 package encryption
 
 import (
-	"../config"
-	"../request"
 	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"github.com/deuscapturus/tism/config"
+	"github.com/deuscapturus/tism/request"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"io/ioutil"

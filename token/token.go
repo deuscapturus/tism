@@ -2,12 +2,12 @@
 package token
 
 import (
-	"../config"
-	"../randid"
-	"../request"
-	"../utils"
 	"context"
 	"errors"
+	"github.com/deuscapturus/tism/config"
+	"github.com/deuscapturus/tism/randid"
+	"github.com/deuscapturus/tism/request"
+	"github.com/deuscapturus/tism/utils"
 	"github.com/dgrijalva/jwt-go"
 	"io"
 	"log"

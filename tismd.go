@@ -2,12 +2,12 @@
 package main
 
 import (
-	"./config"
-	"./encryption"
-	"./randid"
-	"./request"
-	"./token"
 	"crypto/tls"
+	"github.com/deuscapturus/tism/config"
+	"github.com/deuscapturus/tism/encryption"
+	"github.com/deuscapturus/tism/randid"
+	"github.com/deuscapturus/tism/request"
+	"github.com/deuscapturus/tism/token"
 	"log"
 	"net/http"
 )
