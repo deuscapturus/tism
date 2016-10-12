@@ -1,10 +1,16 @@
-port: 8080
+# API listening port
+#port: 8080
+
+# TLS/SSL Settings
 tls_cert_file: "./tls/cert.crt" 
 tls_key_file:  "./tls/cert.key"
-keyring_path: "./gpgkeys/secring.gpg"
 
-# jwt_secret The secret used to sign all JWT's.  If this is changed all previosly signed tokens will become invalid.
-token_secret: sooFreakingsecret
+# Path to PGP/GPG keyring file.
+keyring_path: "/secring.gpg"
 
-revoked_api_keys:
-  - 1234123412341234123412341234
+# token_secret The secret used to sign all JWT tokens.  If this is changed all previosly signed tokens will become invalid.
+#token_secret: sooFreakingsecret
+
+# revoked_tokens list of revoked tokens.
+#revoked_tokens:
+#  - 12341234123412
