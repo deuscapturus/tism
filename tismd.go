@@ -15,8 +15,6 @@ import (
 // main function.  Start http server and provide routes.
 func main() {
 
-	config.Load()
-
 	encryption.KeyRing.GetKeyRing()
 
 	if config.Config.GenAdminToken {

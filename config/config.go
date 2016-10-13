@@ -20,12 +20,17 @@ type Configuration struct {
 
 var Config *Configuration
 
+// Load configuration at startup
+func init() {
+	Load()
+}
+
 // LoadConfiguration load athe configuration from the provided confioguration path.
 func Load() {
 
 	// Default configuration values
-	Config = &Configuration {
-		Port: "8080",
+	Config = &Configuration{
+		Port:            "8080",
 		KeyRingFilePath: "gpgkeys/secring.gpg",
 	}
 
