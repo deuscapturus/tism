@@ -7,10 +7,16 @@ import (
 	"time"
 )
 
+var myrand *rand.Rand
+
+func init() {
+
+	myrand = rand.New(rand.NewSource(time.Now().UnixNano()))
+}
+
 // RandomId returns a base n (10, 8, 16, 32) encoded random int64 number
 func Generate(n int) string {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	randomId := strconv.FormatInt(r.Int63(), n)
+	randomId := strconv.FormatInt(myrand.Int63(), n)
 
 	return randomId
 }
