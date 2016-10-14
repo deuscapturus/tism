@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"github.com/deuscapturus/tism/config"
 	"github.com/deuscapturus/tism/encryption"
+	"github.com/deuscapturus/tism/mytls"
 	"github.com/deuscapturus/tism/randid"
 	"github.com/deuscapturus/tism/request"
 	"github.com/deuscapturus/tism/token"
@@ -24,22 +25,13 @@ func main() {
 		}
 		log.Println(adminToken)
 	}
-
-	TLSConfig := &tls.Config{
-		MinVersion:               tls.VersionTLS12,
-		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
-		PreferServerCipherSuites: true,
-		CipherSuites: []uint16{
-			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
-		},
+	if config.Config.GenCert {
+		mytls.Generate(config.Config.TLSDir)
 	}
 
 	server := http.Server{
 		Addr:         ":" + config.Config.Port,
-		TLSConfig:    TLSConfig,
+		TLSConfig:    mytls.TLSConfig,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
 
@@ -84,8 +76,10 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.Dir("./client")))
 
-	// log.Fatal(server.ListenAndServeTLS(config.Config.TLSCertFile, config.Config.TLSKeyFile))
-	log.Fatal(server.ListenAndServe())
+	log.Fatal(server.ListenAndServeTLS(
+		config.Config.TLSDir+config.Config.TLSCertFile,
+		config.Config.TLSDir+config.Config.TLSKeyFile,
+	))
 }
 
 type Handler func(w http.ResponseWriter, rc http.Request) (error, http.Request)

@@ -1,15 +1,16 @@
 # API listening port
 #port: 8080
 
-# TLS/SSL Settings
-tls_cert_file: "./tls/cert.crt"
-tls_key_file:  "./tls/cert.key"
+# TLS/SSL Settings.  Leave to default unless you want to provide your own TLS certificate.
+#tls_cert_file: "cert.crt"
+#tls_key_file:  "cert.key"
+#tls_directory: "./cert/"
 
 # Path to PGP/GPG keyring file.
 keyring_path: "./secring.gpg"
 
 # token_secret The secret used to sign all JWT tokens.  If this is changed all previosly signed tokens will become invalid.
-#token_secret: sooFreakingsecret
+token_secret: sooFreakingsecret
 
 # revoked_tokens list of revoked tokens.
 #revoked_tokens:
