@@ -10,7 +10,6 @@ import (
 var myrand *rand.Rand
 
 func init() {
-
 	myrand = rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 

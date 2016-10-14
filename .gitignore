@@ -1,3 +1,4 @@
 gpgkeys/
 tls/
 *.swp
+secring.gpg

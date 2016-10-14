@@ -29,7 +29,7 @@ func init() {
 func Load() {
 
 	// Default configuration values
-	Config = &Configuration{
+	Config = &Configuration {
 		Port:            "8080",
 		KeyRingFilePath: "gpgkeys/secring.gpg",
 	}

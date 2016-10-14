@@ -82,7 +82,10 @@ func main() {
 		encryption.GetKey,
 	))
 
-	log.Fatal(server.ListenAndServeTLS(config.Config.TLSCertFile, config.Config.TLSKeyFile))
+	http.Handle("/", http.FileServer(http.Dir("./client")))
+
+	// log.Fatal(server.ListenAndServeTLS(config.Config.TLSCertFile, config.Config.TLSKeyFile))
+	log.Fatal(server.ListenAndServe())
 }
 
 type Handler func(w http.ResponseWriter, rc http.Request) (error, http.Request)

@@ -2,11 +2,11 @@
 #port: 8080
 
 # TLS/SSL Settings
-tls_cert_file: "./tls/cert.crt" 
+tls_cert_file: "./tls/cert.crt"
 tls_key_file:  "./tls/cert.key"
 
 # Path to PGP/GPG keyring file.
-keyring_path: "/secring.gpg"
+keyring_path: "./secring.gpg"
 
 # token_secret The secret used to sign all JWT tokens.  If this is changed all previosly signed tokens will become invalid.
 #token_secret: sooFreakingsecret
