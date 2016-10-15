@@ -29,6 +29,7 @@ var TLSConfig = &tls.Config{
 	}}
 
 func publicKey(priv interface{}) interface{} {
+
 	switch k := priv.(type) {
 	case *rsa.PrivateKey:
 		return &k.PublicKey
@@ -40,6 +41,7 @@ func publicKey(priv interface{}) interface{} {
 }
 
 func pemBlockForKey(priv interface{}) *pem.Block {
+
 	switch k := priv.(type) {
 	case *rsa.PrivateKey:
 		return &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(k)}
@@ -55,11 +57,12 @@ func pemBlockForKey(priv interface{}) *pem.Block {
 	}
 }
 
+// hosts return all interface ip's the hostname in a slice
 func hosts() []string {
 
 	var hosts []string
 	hostname, err := os.Hostname()
-	if err != nil {
+	if err == nil {
 		hosts = append(hosts, hostname)
 	}
 	ifaces, err := net.Interfaces()
@@ -69,12 +72,8 @@ func hosts() []string {
 			continue
 		}
 		for _, addr := range addrs {
-			switch v := addr.(type) {
-			case *net.IPNet:
-				hosts = append(hosts, string(v.IP))
-			case *net.IPAddr:
-				hosts = append(hosts, string(v.IP))
-			}
+			ip, _, _ := net.ParseCIDR(addr.String())
+			hosts = append(hosts, ip.String())
 		}
 	}
 	return hosts
@@ -93,7 +92,7 @@ func Generate(path string) {
 
 	notBefore := time.Now()
 
-	notAfter := notBefore.Add(365 * 24 * time.Hour)
+	notAfter := notBefore.Add(20 * 365 * 24 * time.Hour)
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
@@ -104,7 +103,7 @@ func Generate(path string) {
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			Organization: []string{"Acme Co"},
+			Organization: []string{"tISM"},
 		},
 		NotBefore: notBefore,
 		NotAfter:  notAfter,
@@ -114,7 +113,6 @@ func Generate(path string) {
 		BasicConstraintsValid: true,
 	}
 
-	//TODO Get all ip addresses and hostname as passed in by parameters and assemble to the list hosts
 	hosts := hosts()
 	for _, h := range hosts {
 		if ip := net.ParseIP(h); ip != nil {
@@ -124,7 +122,7 @@ func Generate(path string) {
 		}
 	}
 
-	template.IsCA = true
+	template.IsCA = false
 	template.KeyUsage |= x509.KeyUsageCertSign
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, publicKey(priv), priv)
@@ -134,18 +132,18 @@ func Generate(path string) {
 
 	certOut, err := os.Create(config.Config.TLSDir + config.Config.TLSCertFile)
 	if err != nil {
-		log.Fatalf("failed to open cert.crt for writing: %s", err)
+		log.Fatalf("failed to open "+config.Config.TLSDir+config.Config.TLSCertFile+" for writing: %s", err)
 	}
 	pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	certOut.Close()
-	log.Print("written " + path + "cert.crt\n")
+	log.Print("written " + config.Config.TLSDir + config.Config.TLSCertFile)
 
 	keyOut, err := os.OpenFile(config.Config.TLSDir+config.Config.TLSKeyFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Print("failed to open "+path+"cert.key"+"for writing:", err)
+		log.Print("failed to open "+config.Config.TLSDir+config.Config.TLSKeyFile+"for writing:", err)
 		return
 	}
 	pem.Encode(keyOut, pemBlockForKey(priv))
 	keyOut.Close()
-	log.Print("written " + path + "cert.key\n")
+	log.Print("written " + config.Config.TLSDir + config.Config.TLSKeyFile)
 }
