@@ -35,11 +35,14 @@ Start tismd
 -----------
 
 Use -t to generate a new admin token
+Use -s to generate a new TLS certifiate
 
 .. code::
 
-  # go run tismd.go -t
-  2016/10/09 14:10:19 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiM2I0YmZvc3VrYmV2YiIsImtleXMiOlsiQUxMIl19.kqdOTSybjQm3Je5j5PlRL8yi1hDqb1VrxuVImc7DVfY
+  # go run tismd.go -s -t
+  2016/10/15 10:22:55 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiM3QwOGQxN2VxZHVtcCIsImtleXMiOlsiQUxMIl19.bCBGHR8hCfLT5Pb4iek12T-jawPtX0xINbvhmqG9Jzs
+  2016/10/15 10:22:56 written ./cert/cert.crt
+  2016/10/15 10:22:56 written ./cert/cert.key
 
 Create New Encryption Key
 -------------------------
