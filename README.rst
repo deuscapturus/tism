@@ -39,7 +39,7 @@ Use -s to generate a new TLS certifiate
 
 .. code::
 
-  # go run tismd.go -s -t
+  # go run tismd.go -c -t
   2016/10/15 10:22:55 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiM3QwOGQxN2VxZHVtcCIsImtleXMiOlsiQUxMIl19.bCBGHR8hCfLT5Pb4iek12T-jawPtX0xINbvhmqG9Jzs
   2016/10/15 10:22:56 written ./cert/cert.crt
   2016/10/15 10:22:56 written ./cert/cert.key
