@@ -13,21 +13,28 @@ import (
 	"net/http"
 )
 
-// main function.  Start http server and provide routes.
-func main() {
-
-	encryption.KeyRing.GetKeyRing()
-
+func init() {
+	// Generate admin token if requested
 	if config.Config.GenAdminToken {
-		adminToken, err := token.GenerateToken([]string{"ALL"}, 99999999999, randid.Generate(32), 1)
+		adminToken, err := token.GenerateToken(
+			[]string{"ALL"},
+			99999999999,
+			randid.Generate(32),
+			1,
+		)
 		if err != nil {
 			log.Println(err)
 		}
 		log.Println(adminToken)
 	}
+	// Generate new TLS cert if requested
 	if config.Config.GenCert {
 		mytls.Generate(config.Config.TLSDir)
 	}
+}
+
+// main function.  Start http server and provide routes.
+func main() {
 
 	server := http.Server{
 		Addr:         ":" + config.Config.Port,

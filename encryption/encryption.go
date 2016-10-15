@@ -29,6 +29,10 @@ type PublicKey struct {
 
 var KeyRing = MyEntityList{}
 
+func init() {
+	KeyRing.GetKeyRing()
+}
+
 func SetMyKeyRing(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	var MyKeyRing openpgp.EntityList
