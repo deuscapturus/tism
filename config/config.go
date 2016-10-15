@@ -43,7 +43,7 @@ func Load() {
 	ConfigPath := flag.String("config", "config.yaml", "Configuration file path.")
 
 	GenAdminToken := flag.Bool("t", false, "Generate a super admin token")
-	GenCert := flag.Bool("s", false, "Generate a new TLS certificate. WARNING; WILL OVERWRITE")
+	GenCert := flag.Bool("c", false, "Generate a new TLS certificate. WARNING; WILL OVERWRITE")
 
 	flag.Parse()
 
