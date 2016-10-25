@@ -22,11 +22,12 @@ type Request struct {
 	Id        string   `json:"id"`
 }
 
-var req = Request{}
 
 // Parse get the json message body and map it to our Request struct.
 // This is the only way to get information from the request body through the middlware chain.  The message body is destroyed after the first read here.
 func Parse(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+
+	var req = Request{}
 
 	json := json.NewDecoder(rc.Body)
 
