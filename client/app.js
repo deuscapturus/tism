@@ -1,58 +1,47 @@
+//component
+var tISM = {};
 
-var nonJsonErrors = function(xhr) {
-	  return xhr.status > 200 ? JSON.stringify(xhr.responseText) : xhr.responseText
-}
 
-var tISM = {
-	//model
+//model
+tISM = { 
+	Key: function(data) {
+		this.Id = m.prop(data.Id);
+		this.Name = m.prop(data.Name);
+		this.CreationTime = m.prop(data.CreationTime);
+	},
 
-	//controller
-	controller: function() {
-		return {
-			token: "none",
-			message: tISM.Key.list(this.token),
-		}
+	keys:  function(token) {
+		return m.request({
+			method: "POST",
+		       	url: "key/list",
+			data: { "token": token },
+			type: tISM.Key
+		})
+	},
+};
+
+//controller
+tISM.controller = function() {
+	// when this controller is updated perform a new POST for data by calling message?
+	var token = m.prop("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiNGI2dmk2aTV0NWphZCIsImtleXMiOlsiQUxMIl19.zi5Ei-ZJcl-8dUVW27vGZLIM6qOFfwk94r_aauqr-tQ")
+
+	var keys = function() {
+		tISM.keys(this.token)
 	}
+	return { token, keys }
 };
 
 //view
 tISM.view = function(ctrl) {
 	return m("div"), [
-		m("p", ctrl.token),
-		m("h1", "DAMNIT!"),
-		m("ol", ctrl.message().map( function(key, index) {
-			return m("li", key.Id(), key.Name(), key.CreationTime())
+		m("ol", ctrl.keys().map( function(key, index) {
+			return m("li", key.Id, key.Name, key.CreationTime)
 		})),
 		m("input", {
-			onkeyup: (e) => {
-				ctrl.token = e.target.value
-			}
+			onchange: m.withAttr("value", ctrl.token)
 		})
 	]
-}
-
-tISM.Key = function(data) {
-	this.Id = m.prop(data.Id);
-	this.Name = m.prop(data.Name);
-	this.CreationTime = m.prop(data.CreationTime);
 };
-
-tISM.Key.list = function(token) {
-	return m.request({
-		method: "POST",
-	       	url: "key/list",
-		data: { "token": token },
-		type: tISM.Key
-	})
-}
-
-// ok. if this wasn't ui how would I do this.
-//
-// 1.  Setup an input that with any change makes an api call and changes the
-// keys and scopes list.
-// 2.  Create a component with that is a list of key ids from step 1
-// 3.  Create a component for each api function.
-
 
 
 
