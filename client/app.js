@@ -1,7 +1,6 @@
 //component
 var tISM = {};
 
-
 //model
 tISM.Key = function(data) {
 	this.Id = m.prop(data.Id);
@@ -22,11 +21,11 @@ tISM = {
 
 //controller
 tISM.controller = function() {
-	this.token = m.prop("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiNGI2dmk2aTV0NWphZCIsImtleXMiOlsiQUxMIl19.zi5Ei-ZJcl-8dUVW27vGZLIM6qOFfwk94r_aauqr-tQ")
-	this.keys = new tISM.keys(this.token)
+	this.token = m.prop("")
+	this.keys = m.prop([])
 
-	this.submit = function() {
-		tISM.keys(this.token)
+	this.submit = function(d) {
+		this.keys = tISM.keys(this.token)
 	}.bind(this)
 
 };
@@ -49,4 +48,3 @@ tISM.view = function(ctrl) {
 
 //initialize
 m.mount(document.getElementById("app"), tISM);
-
