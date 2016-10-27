@@ -3,12 +3,12 @@ var tISM = {};
 
 
 //model
+tISM.Key = function(data) {
+	this.Id = m.prop(data.Id);
+	this.Name = m.prop(data.Name);
+	this.CreationTime = m.prop(data.CreationTime);
+}
 tISM = { 
-	Key: function(data) {
-		this.Id = m.prop(data.Id);
-		this.Name = m.prop(data.Name);
-		this.CreationTime = m.prop(data.CreationTime);
-	},
 
 	keys:  function(token) {
 		return m.request({
