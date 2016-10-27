@@ -24,7 +24,8 @@ tISM.controller = function() {
 	this.token = m.prop("")
 	this.keys = m.prop([])
 
-	this.submit = function(d) {
+	this.updateToken = function(token) {
+		this.token = token
 		this.keys = tISM.keys(this.token)
 	}.bind(this)
 
@@ -33,14 +34,12 @@ tISM.controller = function() {
 //view
 tISM.view = function(ctrl) {
 	return m("div"), [
+		m("input", {
+			oninput: m.withAttr("value", ctrl.updateToken)
+		}),
 		m("ol", ctrl.keys().map( function(key, index) {
 			return m("li", key.Id, key.Name, key.CreationTime)
 		})),
-		m("input", {
-			oninput: m.withAttr("value", ctrl.token),
-			value: ctrl.token()
-		}),
-		m("button", { onclick: ctrl.submit }, "Submit")
 	]
 
 };
