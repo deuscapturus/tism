@@ -22,27 +22,29 @@ tISM = {
 
 //controller
 tISM.controller = function() {
-	// when this controller is updated perform a new POST for data by calling message?
 	this.token = m.prop("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiNGI2dmk2aTV0NWphZCIsImtleXMiOlsiQUxMIl19.zi5Ei-ZJcl-8dUVW27vGZLIM6qOFfwk94r_aauqr-tQ")
 	this.keys = new tISM.keys(this.token)
+
+	this.submit = function() {
+		tISM.keys(this.token)
+	}.bind(this)
 
 };
 
 //view
 tISM.view = function(ctrl) {
 	return m("div"), [
-		m("p", ctrl.token()),
 		m("ol", ctrl.keys().map( function(key, index) {
 			return m("li", key.Id, key.Name, key.CreationTime)
 		})),
 		m("input", {
 			oninput: m.withAttr("value", ctrl.token),
 			value: ctrl.token()
-		})
+		}),
+		m("button", { onclick: ctrl.submit }, "Submit")
 	]
 
 };
-
 
 
 //initialize
