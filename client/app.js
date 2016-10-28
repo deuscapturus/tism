@@ -39,13 +39,13 @@ tISM.view = function(ctrl) {
 		}),
 		m("select[multiple=multiple]", ctrl.keys().map( function(key, index) {
 			return m("option", {
-					value: key.Id
+					value: key.Id,
 				},
 				key.Id,
 				key.Name,
 				key.CreationTime
 				)
-		})),
+		}))
 	]
 
 };
