@@ -1,0 +1,17 @@
+input {
+    width: 90%;
+    border: 3px solid #73AD21;
+    margin: 10px;
+}
+select {
+    position: static;
+    width: 400px;
+    height: 500px;;
+    border: 3px solid #73AD21;
+    float: right;
+    margin: 10px;
+}
+options {
+    
+}
+
