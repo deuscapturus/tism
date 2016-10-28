@@ -37,8 +37,14 @@ tISM.view = function(ctrl) {
 		m("input", {
 			oninput: m.withAttr("value", ctrl.updateToken)
 		}),
-		m("ol", ctrl.keys().map( function(key, index) {
-			return m("li", key.Id, key.Name, key.CreationTime)
+		m("select[multiple=multiple]", ctrl.keys().map( function(key, index) {
+			return m("option", {
+					value: key.Id
+				},
+				key.Id,
+				key.Name,
+				key.CreationTime
+				)
 		})),
 	]
 
