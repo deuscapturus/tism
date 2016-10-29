@@ -26,7 +26,6 @@ tISM = {
 		})
 	},
 	newtoken: function(token, keys, admin) {
-		alert(admin)
 		return m.request({
 			method: "POST",
 			url: "token/new",
@@ -38,6 +37,7 @@ tISM = {
 
 //controller
 tISM.controller = function() {
+	// m.prop's are defined here with their defaults
 	this.token = m.prop("")
 	this.keys = m.prop([])
 	this.selectedKeys = m.prop([])
@@ -46,14 +46,16 @@ tISM.controller = function() {
 	this.input = m.prop("")
 	this.output = m.prop("")
 
+	// update functions are defined here to update m.prop's from the view and
+	// run functions that these changes could affect.
 	this.updateToken = function(token) {
 		this.token(token)
-		tISM.keys(this.token()).then(this.keys)
+		keys()
 	}.bind(this)
 
 	this.updateAdmin = function(admin) {
 		this.admin(((admin) ? 1 : 0))
-		this.updatedSelectedKeys()
+		if (this.task()=="New Token") { newtoken() }
 	}.bind(this)
 
 	this.updatedSelectedKeys = function(selectedKeys) {
@@ -64,22 +66,36 @@ tISM.controller = function() {
                         arr[index] = item.value; 
                 })
 		this.selectedKeys(arr)
+		newtoken()
 		
-		switch(this.task()) {
-			//TODO add case for encrypt secret
-			case "New Token":
-				tISM.newtoken(this.token(), this.selectedKeys(), this.admin()).then(this.output, this.output)
-				break;
-		}
 	}.bind(this)
 
 	this.updateInput = function(input) {
 		this.input(input)
-		switch(this.task()) {
-			//TODO add case for encrypt
-			case "Decrypt":
-				tISM.decrypt(this.token(), this.input()).then(this.output, this.output)
-				break;
+		decrypt()
+	}.bind(this)
+
+	this.updateTask = function(task) {
+		this.task(task)
+		decrypt()
+		newtoken()
+	}.bind(this)
+
+	// functions are defined here.  These are actions
+	// that are triggered by the above update functions
+	var keys = function() {
+		tISM.keys(this.token()).then(this.keys)
+	}.bind(this)
+
+	var decrypt = function() {
+		if (this.task() == "Decrypt") {
+			tISM.decrypt(this.token(), this.input()).then(this.output, this.output)
+		}
+	}.bind(this)
+
+	var newtoken = function() {
+		if (this.task() == "New Token") {
+			tISM.newtoken(this.token(), this.selectedKeys(), this.admin()).then(this.output, this.output)
 		}
 	}.bind(this)
 
@@ -112,7 +128,7 @@ tISM.view = function(ctrl) {
 		})),
 		m("select[name=task]", {
 			value: ctrl.task(),
-			onchange: m.withAttr("value", ctrl.task)
+			onchange: m.withAttr("value", ctrl.updateTask)
 			}, [
 				m("option", "Decrypt"),
 				m("option", "Encrypt"),
