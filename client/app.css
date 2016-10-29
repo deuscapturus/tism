@@ -3,7 +3,7 @@ input {
     border: 3px solid #73AD21;
     margin: 10px;
 }
-select {
+select[name=key] {
     position: static;
     width: 400px;
     height: 500px;;
