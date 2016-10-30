@@ -43,7 +43,6 @@ func init() {
 // ParseFlags Command line configuration values
 func parseFlags() {
 
-
 	ConfigPath := flag.String("config", "config.yaml", "Configuration file path.")
 	GenAdminToken := flag.Bool("t", false, "Generate a super admin token")
 	GenCert := flag.Bool("c", false, "Generate a new TLS certificate. WARNING; WILL OVERWRITE")
