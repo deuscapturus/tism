@@ -104,7 +104,8 @@ tISM.controller = function() {
 //view
 tISM.view = function(ctrl) {
 	return m("div"), [
-		m("input[autofocus=yes]", {
+		m("label[for=token]", "Token"),
+		m("input[autofocus=yes,id=token]", {
 			oninput: m.withAttr("value", ctrl.updateToken)
 		}),
 		m("button", {
@@ -112,8 +113,9 @@ tISM.view = function(ctrl) {
 			},
 			"New Key"
 		),
-		m("select[name=key]", {
-				id: "test",
+		m("label[for=keys]", "Encryption Keys"),
+		m("select[name=keys]", {
+				id: "keys",
 				multiple: "multiple",
 				onchange: m.withAttr("selectedOptions", ctrl.updatedSelectedKeys)
 			},
@@ -136,16 +138,19 @@ tISM.view = function(ctrl) {
 			]
 		),
 		m("div[id=io]", [
-			m("input[name=isAdmin]", {
+			m("label[for=admin]", "Make Admin"),
+			m("input[id=admin]", {
 				type: "checkbox",
 				value: ctrl.admin(),
 				onchange: m.withAttr("checked", ctrl.updateAdmin)
 			}),
-			m("textarea[name=input]", {
+			m("label[for=input]", "Input"),
+			m("textarea[id=input]", {
 				value: ctrl.input(),
 				oninput: m.withAttr("value", ctrl.updateInput)
 			}),
-			m("textarea[name=output]", {
+			m("label[for=output]", "Output"),
+			m("textarea[id=output]", {
 				value: ctrl.output(),
 			})
 		]),
