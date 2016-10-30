@@ -46,11 +46,14 @@ tISM.controller = function() {
 	this.input = m.prop("")
 	this.output = m.prop("")
 
+
 	// update functions are defined here to update m.prop's from the view and
 	// run functions that these changes could affect.
 	this.updateToken = function(token) {
 		this.token(token)
 		keys()
+		newtoken()
+		decrypt()
 	}.bind(this)
 
 	this.updateAdmin = function(admin) {
@@ -81,6 +84,7 @@ tISM.controller = function() {
 		newtoken()
 	}.bind(this)
 
+
 	// functions are defined here.  These are actions
 	// that are triggered by the above update functions
 	var keys = function() {
@@ -89,13 +93,20 @@ tISM.controller = function() {
 
 	var decrypt = function() {
 		if (this.task() == "Decrypt") {
-			tISM.decrypt(this.token(), this.input()).then(this.output, this.output)
+			tISM.decrypt(
+				this.token(),
+				this.input()
+			).then(this.output, this.output)
 		}
 	}.bind(this)
 
 	var newtoken = function() {
 		if (this.task() == "New Token") {
-			tISM.newtoken(this.token(), this.selectedKeys(), this.admin()).then(this.output, this.output)
+			tISM.newtoken(
+				this.token(),
+				this.selectedKeys(),
+				this.admin()
+			).then(this.output, this.output)
 		}
 	}.bind(this)
 
