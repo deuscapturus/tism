@@ -124,6 +124,12 @@ func ListKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
 
+	if rc.Context().Value("claims").(string) == "ALL" {
+		all := make(map[string]string)
+		all["Id"] = "ALL"
+		list = append(list, all)
+	}
+
 	for _, entity := range MyKeyRing {
 		m := make(map[string]string)
 		m["CreationTime"] = entity.PrimaryKey.CreationTime.String()
