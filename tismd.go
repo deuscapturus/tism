@@ -37,7 +37,7 @@ func init() {
 func main() {
 
 	server := http.Server{
-		Addr:         ":" + config.Config.Port,
+		Addr:         config.Config.Address + ":" + config.Config.Port,
 		TLSConfig:    mytls.TLSConfig,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}

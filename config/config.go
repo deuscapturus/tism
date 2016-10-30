@@ -10,6 +10,7 @@ import (
 
 type Configuration struct {
 	Port            string   `yaml:"port,omitempty"`
+	Address         string   `yaml:"address,omitempty"`
 	TLSCertFile     string   `yaml:"tls_cert_file,omitempty"`
 	TLSKeyFile      string   `yaml:"tls_key_file,omitempty"`
 	TLSDir          string   `yaml:"tls_directory,omitempty"`
@@ -32,7 +33,6 @@ func Load() {
 
 	// Default configuration values
 	Config = &Configuration{
-		Port:            "8080",
 		KeyRingFilePath: "gpgkeys/secring.gpg",
 		TLSCertFile:     "cert.crt",
 		TLSKeyFile:      "cert.key",
@@ -44,6 +44,8 @@ func Load() {
 
 	GenAdminToken := flag.Bool("t", false, "Generate a super admin token")
 	GenCert := flag.Bool("c", false, "Generate a new TLS certificate. WARNING; WILL OVERWRITE")
+	Port := flag.String("p", "8080", "Port to listen on")
+	Address := flag.String("a", "0.0.0.0", "Address to listen on")
 
 	flag.Parse()
 
@@ -58,4 +60,6 @@ func Load() {
 
 	Config.GenAdminToken = *GenAdminToken
 	Config.GenCert = *GenCert
+	Config.Port = *Port
+	Config.Address = *Address
 }
