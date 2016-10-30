@@ -1,1 +1,1 @@
--t -p $OPENSHIFT_GO_PORT -a $OPENSHIFT_GO_IP
+-t -a $HOST
