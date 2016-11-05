@@ -17,6 +17,14 @@ tISM = {
 			type: tISM.Key
 		})
 	},
+	encrypt: function(token, decsecret, key) {
+		return m.request({
+			method: "POST",
+			url: "encrypt",
+			data: { "token": token, "decsecret": decsecret, "id": key[0] },
+			deserialize: function(value) {return value;}
+		})
+	},
 	decrypt: function(token, encsecret) {
 		return m.request({
 			method: "POST",
@@ -53,6 +61,7 @@ tISM.controller = function() {
 		this.token(token)
 		keys()
 		newtoken()
+		encrypt()
 		decrypt()
 	}.bind(this)
 
@@ -76,11 +85,13 @@ tISM.controller = function() {
 	this.updateInput = function(input) {
 		this.input(input)
 		decrypt()
+		encrypt()
 	}.bind(this)
 
 	this.updateTask = function(task) {
 		this.task(task)
 		decrypt()
+		encrypt()
 		newtoken()
 	}.bind(this)
 
@@ -96,6 +107,16 @@ tISM.controller = function() {
 			tISM.decrypt(
 				this.token(),
 				this.input()
+			).then(this.output, this.output)
+		}
+	}.bind(this)
+
+	var encrypt = function() {
+		if (this.task() == "Encrypt") {
+			tISM.encrypt(
+				this.token(),
+				this.input(),
+				this.selectedKeys()
 			).then(this.output, this.output)
 		}
 	}.bind(this)
