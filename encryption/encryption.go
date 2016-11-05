@@ -4,6 +4,7 @@ package encryption
 import (
 	"bytes"
 	"context"
+	"crypto"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -11,6 +12,7 @@ import (
 	"github.com/deuscapturus/tism/request"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
+	"golang.org/x/crypto/openpgp/packet"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -90,28 +92,46 @@ func Decrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	return nil, rc
 }
 
-// Enctyp encrypt the given string.
+// Encrypt encrypt the given string.
 func Encrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	req := rc.Context().Value("request").(request.Request)
 	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
 
-	//	RequestId := stringToUint64(req.Id)
-	DecSecret := []byte(req.DecSecret)
+	EntityId := stringToUint64(req.Id)
+	ThisKey := MyKeyRing.KeysById(EntityId)
+	if len(ThisKey) == 0 {
+		return errors.New("Key Id not found in requestors keyring"), rc
+	}
+
+	var ThisKeyEntity []*openpgp.Entity
+	ThisKeyEntity = append(ThisKeyEntity, ThisKey[0].Entity)
 
 	buf := new(bytes.Buffer)
-	EncWriter, err := openpgp.Encrypt(buf, MyKeyRing, nil, nil, nil)
+	EncWriter, err := openpgp.Encrypt(buf, ThisKeyEntity, nil, nil, nil)
 	if err != nil {
 		return err, rc
 	}
 
-	_, err = EncWriter.Write(DecSecret)
+	_, err = EncWriter.Write([]byte(req.DecSecret))
 	if err != nil {
 		return err, rc
 	}
+
+	err = EncWriter.Close()
+	if err != nil {
+		return err, rc
+	}
+
+	encSecret, err := ioutil.ReadAll(buf)
+	if err != nil {
+		return err, rc
+	}
+
+	base64encSecret := base64.StdEncoding.EncodeToString(encSecret)
 
 	w.Header().Set("Content-Type", "text/text")
-	w.Write(buf.Bytes())
+	w.Write([]byte(base64encSecret))
 
 	return nil, rc
 }
@@ -172,7 +192,11 @@ func NewKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	var req request.Request
 	req = rc.Context().Value("request").(request.Request)
 
-	NewEntity, err := openpgp.NewEntity(req.Name, req.Comment, req.Email, nil)
+	pgpConfig := &packet.Config{
+		DefaultHash : crypto.SHA256,
+	}
+
+	NewEntity, err := openpgp.NewEntity(req.Name, req.Comment, req.Email, pgpConfig)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Header().Set("Content-Type", "text/plain")
