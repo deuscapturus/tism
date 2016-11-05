@@ -1,0 +1,42 @@
+body {
+    background-image: url("https://media.giphy.com/media/CHSCYIZ7sEcZG/giphy.gif");
+    background-repeat: repeat;
+}
+
+input {
+    width: 90%;
+    border: 3px solid #0080ff;
+    margin: 10px;
+}
+label {
+    color: #B4886B;
+    font-weight: bold;
+    display: block;
+    float: left;
+}
+select[multiple] {
+    height: auto;
+}
+#keys {
+    position: static;
+    width: 40%;
+    height: 500px;;
+    border: 3px solid #0080ff;
+    float: right;
+    margin: 10px;
+}
+#io {
+    position: static;
+    float: left;
+    width: 50%;
+    margin: 12px;
+    float: left;
+}
+
+#io > textarea {
+    border: 3px solid #0080ff;
+    float: left;
+    width: 100%;
+    height: 200px;
+    margin: 5px;
+}
