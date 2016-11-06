@@ -100,6 +100,17 @@ Issue a new Token
   }' \
   https://localhost:8080/token/new
 
+Get Token Info
+--------------
+
+.. code::
+
+  curl -k -H "Content-Type: application/json" -X POST \
+  -d '{
+      "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo"
+  }' \
+  https://localhost:8080/token/info
+
 Encrypt a Secret
 ----------------
 
