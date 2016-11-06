@@ -55,6 +55,11 @@ func main() {
 		encryption.SetMyKeyRing,
 		encryption.Encrypt,
 	))
+	http.Handle("/token/info", Handle(
+		request.Parse,
+		token.Parse,
+		token.Info,
+	))
 	http.Handle("/token/new", Handle(
 		request.Parse,
 		token.Parse,

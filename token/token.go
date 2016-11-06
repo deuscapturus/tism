@@ -3,6 +3,7 @@ package token
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/deuscapturus/tism/config"
 	"github.com/deuscapturus/tism/randid"
@@ -80,6 +81,32 @@ func IsAdmin(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 		return nil, rc
 	}
 	return errors.New("Requestor is not admin"), rc
+}
+
+// Info return jwt token information.
+func Info(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+	type TokenInfo struct {
+		Keys  []string `json:"keys"`
+		Admin int      `json:"admin"`
+	}
+	JsonEncode := json.NewEncoder(w)
+
+	var keys []string
+	switch rc.Context().Value("claims").(type) {
+	case []string:
+		keys = rc.Context().Value("claims").([]string)
+	case string:
+		keys = append(keys, rc.Context().Value("claims").(string))
+	}
+
+	tokenInfo := TokenInfo{
+		Keys:  keys,
+		Admin: rc.Context().Value("admin").(int),
+	}
+
+	w.Header().Set("Content-Type", "text/json")
+	JsonEncode.Encode(tokenInfo)
+	return nil, rc
 }
 
 // IssueJWT return a valid jwt with these statically defined scope values.
