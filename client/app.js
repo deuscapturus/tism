@@ -1,10 +1,10 @@
 //component
 var tISM = {};
 
+
 //controller
 tISM.controller = function() {
-
-        this.tokeninfo = m.prop({})
+	this.tokeninfo = m.prop({})
 	this.auth = m.prop(false)
 
 	// updateToken is called from the child auth component with token info
@@ -23,16 +23,25 @@ tISM.controller = function() {
 tISM.view = function(ctrl) {
 	return [
 		m.component(auth, {udpateToken: ctrl.updateToken}),
+		m("h5", ctrl.tokeninfo()),
+		m("h5", ctrl.auth()),
 		(function() {
 			if (ctrl.auth()) {
-				return m("div", [
-					m("h2", "Authenticated")
-				])
+				return [
+					m.component(menu),
+					(function() {
+						console.log(m.route.param("task"))
+						switch(m.route.param("task")) {
+							case "encrypt":
+								console.log("in encrypt")
+								return m.component(encrypt)
+						}
+					})()
+				]
 			} else {
-				return m("div", [
-					m("h2", "Not Authenticated"),
-					m("p", ctrl.tokeninfo())
-				])
+				return [
+					m("p[class=error]", ctrl.tokeninfo())
+				]
 			}
 		})(),
 	]
@@ -40,4 +49,10 @@ tISM.view = function(ctrl) {
 
 
 //initialize
-m.mount(document.getElementById("app"), tISM);
+//m.mount(document.getElementById("app"), tISM);
+m.route.mode = "hash";
+//routes
+m.route(document.getElementById("app"), "/", {
+    "/": tISM,
+    "/:task": tISM
+});
