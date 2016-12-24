@@ -1,7 +1,7 @@
 var encrypt = {};
 
 //view
-encrypt.view = function(ctrl) {
+encrypt.view = function(vnode) {
 	return m("div", [
 		m("button", {
 				// TODO popup new modal for encryption key creation
@@ -12,9 +12,9 @@ encrypt.view = function(ctrl) {
 		m("select[name=keys]", {
 				id: "keys",
 				multiple: "multiple",
-				onchange: m.withAttr("selectedOptions", ctrl.updatedSelectedKeys)
+				onchange: m.withAttr("selectedOptions", vnode.state.updatedSelectedKeys)
 			},
-			ctrl.keys().map( function(key, index) {
+			vnode.state.keys().map( function(key, index) {
 				return m("option", {
 						value: key.Id,
 					},
@@ -24,8 +24,8 @@ encrypt.view = function(ctrl) {
 				)
 		})),
 		m("select[name=task]", {
-			value: ctrl.task(),
-			onchange: m.withAttr("value", ctrl.updateTask)
+			value: vnode.state.task(),
+			onchange: m.withAttr("value", vnode.state.updateTask)
 			}, [
 				m("option", "Decrypt"),
 				m("option", "Encrypt"),
@@ -36,17 +36,17 @@ encrypt.view = function(ctrl) {
 			m("label[for=admin]", "Make Admin"),
 			m("input[id=admin]", {
 				type: "checkbox",
-				value: ctrl.admin(),
-				onchange: m.withAttr("checked", ctrl.updateAdmin)
+				value: vnode.state.admin(),
+				onchange: m.withAttr("checked", vnode.state.updateAdmin)
 			}),
 			m("label[for=input]", "Input"),
 			m("textarea[id=input]", {
-				value: ctrl.input(),
-				oninput: m.withAttr("value", ctrl.updateInput)
+				value: vnode.state.input(),
+				oninput: m.withAttr("value", vnode.state.updateInput)
 			}),
 			m("label[for=output]", "Output"),
 			m("textarea[id=output]", {
-				value: ctrl.output(),
+				value: vnode.state.output(),
 			})
 		]),
 

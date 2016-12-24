@@ -19,7 +19,8 @@ auth = {
 
 //controller
 auth.controller = function(parentctrl) {
-	this.token = m.prop("")
+	this.token = /* WARNING: m.prop has been removed from mithril@1.x! */
+    m.prop("")
 
 	// UpdateToken update the token prop for this component and passes info to the parent compontent
 	// that uses the same function name.
@@ -30,11 +31,11 @@ auth.controller = function(parentctrl) {
 };
 
 //view
-auth.view = function(ctrl) {
+auth.view = function(vnode) {
 	return m("div", [
 		m("label[for=token]", "Token"),
 		m("input[autofocus=yes,id=token]", {
-			oninput: m.withAttr("value", ctrl.updateToken)
+			oninput: m.withAttr("value", vnode.state.updateToken)
 		}),
 	])
 };

@@ -22,19 +22,19 @@ tISM.controller = function() {
 //view
 tISM.view = function(ctrl) {
 	return [
-		m.component(auth, {udpateToken: ctrl.updateToken}),
+		m(auth, {udpateToken: ctrl.updateToken}),
 		m("h5", ctrl.tokeninfo()),
 		m("h5", ctrl.auth()),
 		(function() {
 			if (ctrl.auth()) {
 				return [
-					m.component(menu),
+					m(menu),
 					(function() {
 						console.log(m.route.param("task"))
 						switch(m.route.param("task")) {
 							case "encrypt":
 								console.log("in encrypt")
-								return m.component(encrypt)
+								return m(encrypt)
 						}
 					})()
 				]

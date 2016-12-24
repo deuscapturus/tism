@@ -2,12 +2,12 @@
 var menu = {};
 
 //view
-menu.view = function(ctrl) {
+menu.view = function(vnode) {
 	return m("ul[id=menu]", [
-		m("li", m("a[href=/encrypt]", {config: m.route}, "Encrypt")),
-		m("li", m("a[href=/decrypt]", {config: m.route}, "Decrypt")),
-		m("li", m("a[href=/tokens]", {config: m.route}, "Manage Tokens")),
-		m("li", m("a[href=/keys]", {config: m.route}, "Manage Keys"))
+		m("li", m("a[href=/encrypt]", {oncreate: m.route.link}, "Encrypt")),
+		m("li", m("a[href=/decrypt]", {oncreate: m.route.link}, "Decrypt")),
+		m("li", m("a[href=/tokens]", {oncreate: m.route.link}, "Manage Tokens")),
+		m("li", m("a[href=/keys]", {oncreate: m.route.link}, "Manage Keys"))
 	
 	])
 };
