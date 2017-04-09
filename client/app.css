@@ -1,16 +1,5 @@
-input {
-    width: 90%;
-    border: 3px solid #0080ff;
-    margin: 10px;
-}
-label {
-    color: #B4886B;
-    font-weight: bold;
-    display: block;
-    float: left;
-}
-select[multiple] {
-    height: auto;
+.error {
+	color: red;
 }
 
 #menu {
@@ -37,18 +26,20 @@ select[multiple] {
     background-color: #111;
 }
 
-#keys {
-    position: static;
-    width: 40%;
-    height: 500px;;
-    border: 3px solid #0080ff;
-    float: right;
-    margin: 10px;
+.keys label {
+  float: left;
+  display: inline-block;
+  background-color: #ddd;
+  padding: 4px 11px;
+  font-family: Arial;
+  font-size: 16px;
+  cursor: pointer;
 }
+
 #io {
     position: static;
     float: left;
-    width: 50%;
+    width: 20%;
     margin: 12px;
     float: left;
 }
@@ -56,7 +47,7 @@ select[multiple] {
 #io > textarea {
     border: 3px solid #0080ff;
     float: left;
-    width: 100%;
+    width: 60%;
     height: 200px;
     margin: 5px;
 }
