@@ -7,6 +7,7 @@ var auth = {
 			m("input[autofocus=yes,id=token][type=text][placeholder=Token][class=form-control]", {
 				oninput: m.withAttr("value", function(value) {
 						Token.current = value
+						sessionStorage.setItem("token", value);
 						Token.getInfo(value)
 				}),
 				value: Token.current

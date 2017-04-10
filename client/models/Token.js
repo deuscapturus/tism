@@ -1,8 +1,8 @@
 //model
 var Token = {
-	current: "",
-	error: "",
-	info: {},
+	current: sessionStorage.getItem("token"),
+	error: sessionStorage.getItem("tokenError"),
+	info: JSON.parse(sessionStorage.getItem("tokenInfo")),
 	getInfo: function(token) {
 		return m.request({
 			method: "POST",
@@ -11,10 +11,13 @@ var Token = {
 		})
 		.then(function(result){
 			Token.info = result
+			sessionStorage.setItem("tokenInfo", JSON.stringify(result))
 		})
 		.catch(function(e) {
-			Token.info = {}
 			Token.error = e.message
+			sessionStorage.setItem("tokenError", e.message)
+			Token.info = {}
+			sessionStorage.setItem("tokenInfo", JSON.stringify({}))
 		})
 	}
 }
