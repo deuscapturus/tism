@@ -3,8 +3,8 @@ import { Token } from "../models/Token.js"
 //component
 var auth = {
 	view: function() {
-		return m("div", [
-			m("input[autofocus=yes,id=token][type=text][placeholder=Token]", {
+		return m("div[class=form-group]", [
+			m("input[autofocus=yes,id=token][type=text][placeholder=Token][class=form-control]", {
 				oninput: m.withAttr("value", function(value) {
 						Token.current = value
 						Token.getInfo(value)

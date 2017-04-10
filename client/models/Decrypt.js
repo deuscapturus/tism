@@ -1,7 +1,7 @@
 //model
 var Decrypt = {
 	error: false,
-	output: "Enter input",
+	output: "",
 	decrypt: function(token, encsecret) {
 		return m.request({
 			method: "POST",

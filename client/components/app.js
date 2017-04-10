@@ -11,7 +11,7 @@ var app = {
 				m(eval(m.route.param("task")), {auth: vnode.attrs.auth, token: vnode.attrs.token})
 			])
 		} else {
-			return m("h4", vnode.attrs.err)
+			if (vnode.attrs.err) { return m("span[class=alert alert-danger center-block]", vnode.attrs.err) } else { return null }
 		}
 	}
 }

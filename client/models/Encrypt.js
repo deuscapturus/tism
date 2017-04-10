@@ -1,7 +1,7 @@
 //model
 var Encrypt = {
 	error: false,
-	output: "Enter input",
+	output: "",
 	selectedKey: "",
 	encrypt: function(token, decsecret, id) {
 		return m.request({
