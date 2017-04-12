@@ -7,6 +7,7 @@ var menu = {
 			m("li", {class: (m.route.param("task") == "decrypt") ? "active" : null}, m("a[href=/decrypt]", {oncreate: m.route.link}, "Decrypt")),
 			m("li", {class: (m.route.param("task") == "encrypt") ? "active" : null}, m("a[href=/encrypt]", {oncreate: m.route.link}, "Encrypt")),
 			m("li", {class: (m.route.param("task") == "keys") ? "active" : null}, m("a[href=/keys]", {oncreate: m.route.link}, "Keys")),
+			m("li", {class: (m.route.param("task") == "tokens") ? "active" : null}, m("a[href=/tokens]", {oncreate: m.route.link}, "Tokens")),
 	//		(Token.info.admin == 1) ? m("li[class=dropdown]",
 	//			{class: (m.route.param("task") == "tokens"|| m.route.param("task") == "keys") ? "active" : null}, [
 	//			m("a[href=#][class=dropdown-toggle][data-toggle=dropdown][role=button][aria-haspopup=true][aria-expanded=false]",
