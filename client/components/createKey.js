@@ -32,7 +32,8 @@ var createKey = {
 					})
 				})) 
 			]),
-			m("button[type=submit][class=btn btn-default]", "Create New Key")
+			m("button[type=submit][class=btn btn-default]", "Create New Key"),
+			CreateKey.err ? m("span[class=alert alert-danger center-block]", CreateKey.errMessage ) : null
 		])
 	}
 }

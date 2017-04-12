@@ -6,7 +6,8 @@ var CreateKey = {
 	name: "",
 	comment: "",
 	email: "",
-	error: false,
+	err: false,
+	errMessage: "",
 	create: function() {
 		return m.request({
 			method: "POST",
@@ -18,8 +19,8 @@ var CreateKey = {
 			Keys.getList()
 		})
 		.catch(function(e) {
-			console.log(e.message)
-			CreateKey.error = true
+			CreateKey.errMessage(e.message)
+			CreateKey.err = true
 		})
 	}
 }
