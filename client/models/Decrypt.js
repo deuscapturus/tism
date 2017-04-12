@@ -1,12 +1,14 @@
+import { Token } from "./Token.js";
+
 //model
 var Decrypt = {
 	error: false,
 	output: "",
-	decrypt: function(token, encsecret) {
+	decrypt: function(encsecret) {
 		return m.request({
 			method: "POST",
 			url: "decrypt",
-			data: { "token": token, "encsecret": encsecret },
+			data: { "token": Token.current, "encsecret": encsecret },
 			deserialize: function(value) {return value}
 		})
 		.then(function(result){

@@ -2,7 +2,7 @@
 var Token = {
 	current: sessionStorage.getItem("token"),
 	error: sessionStorage.getItem("tokenError"),
-	info: JSON.parse(sessionStorage.getItem("tokenInfo")),
+	info: JSON.parse(sessionStorage.getItem("tokenInfo")) || {},
 	getInfo: function(token) {
 		return m.request({
 			method: "POST",

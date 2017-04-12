@@ -4,7 +4,7 @@ import { Keys } from "../models/Keys.js";
 //component
 var encrypt = {
 	oninit: function(vnode) {
-		Keys.getList(vnode.attrs.token)
+		Keys.getList()
 	},
 	view: function(vnode) {
 		return m("div", [
@@ -26,7 +26,7 @@ var encrypt = {
 				m("label[for=input]", "Input"),
 				m("textarea[id=input][class=form-control][rows=2]", {
 					oninput: m.withAttr("value", function(value) {
-						Encrypt.encrypt(vnode.attrs.token, value, Encrypt.selectedKey)
+						Encrypt.encrypt(value, Encrypt.selectedKey)
 					})
 				}),
 				m("label[for=output]", "Output"),

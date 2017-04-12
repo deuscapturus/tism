@@ -1,13 +1,15 @@
+import { Token } from "./Token.js";
+
 //model
 var Encrypt = {
 	error: false,
 	output: "",
 	selectedKey: "",
-	encrypt: function(token, decsecret, id) {
+	encrypt: function(decsecret, id) {
 		return m.request({
 			method: "POST",
 			url: "encrypt",
-			data: { "token": token, "decsecret": decsecret, "id": id },
+			data: { "token": Token.current, "decsecret": decsecret, "id": id },
 			deserialize: function(value) {return value}
 		})
 		.then(function(result){

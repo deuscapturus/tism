@@ -1,12 +1,14 @@
+import { Token } from "./Token.js";
+
 //model
 var Keys = {
 	available: [],
 	error: false,
-	getList: function(token) {
+	getList: function() {
 		return m.request({
 			method: "POST",
 			url: "key/list",
-			data: { "token": token },
+			data: { "token": Token.current },
 		})
 		.then(function(result){
 			Keys.available = result

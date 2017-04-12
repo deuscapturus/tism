@@ -1,6 +1,7 @@
 import { menu } from "./menu.js";
 import { encrypt } from "./encrypt.js";
 import { decrypt } from "./decrypt.js";
+import { keys } from "./keys.js";
 
 //component
 var app = {
