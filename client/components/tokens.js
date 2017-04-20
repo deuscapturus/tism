@@ -6,6 +6,9 @@ var tokens = {
 	oninit: function(vnode) {
 		Keys.getList()
 	},
+	onupdate: function(vnode) {
+		Keys.getList()
+	},
 	view: function(vnode) {
 		return m("div", [
 			m("button[type=button][class=btn btn-default]", { onclick: function() { CreateToken.create() }}, m("span[class=glyphicon glyphicon-plus][aria-hidden=true]", " Create Token")),
