@@ -4,17 +4,20 @@ import { Token } from "../models/Token.js";
 
 var index = {
 	view: function() {
-		return m("div[class=container]", [
-			m("div[class=page-header", [
-				m("h1", [
-					"tISM ",
-					m("small", "the Immutable Secrets Manager")
-				])
-			]),
-			m(auth),
-			m(app, {auth: Token.info, token: Token.current, err: Token.error}),
-			m("div[id=app"),
-		])
+		return [
+			m("div[id=tokenModal][class=modal]"),
+				m("div[class=container]", [
+				m("div[class=page-header", [
+					m("h1", [
+						"tISM ",
+						m("small", "the Immutable Secrets Manager")
+					])
+				]),
+				m(auth),
+				m(app, {auth: Token.info, token: Token.current, err: Token.error}),
+				m("div[id=app"),
+			])
+		]
 	}
 }
 
