@@ -5,9 +5,6 @@ var keysList = {
 	oninit: function(vnode) {
 		Keys.getList()
 	},
-	onupdate: function(vnode) {
-		Keys.getList()
-	},
 	view: function(vnode) {
 		return m("div", [
 			m("table[class=table table-striped]", [
