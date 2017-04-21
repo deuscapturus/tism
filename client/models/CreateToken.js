@@ -4,6 +4,14 @@ import { modal } from "../components/modal.js";
 //model
 var CreateToken = {
     selectedKeys: [],
+	makeAdmin: 0,
+	toggleAdmin: function(x) {
+		if (x) {
+			CreateToken.makeAdmin = 1
+		} else {
+			CreateToken.makeAdmin = 0
+		}
+	},
 	toggle: function(id) {
 		// Remove id from selectedKeys, otherwise add it
 		if (CreateToken.selectedKeys.some(x => x === id)) {
@@ -17,7 +25,7 @@ var CreateToken = {
 		return m.request({
 			method: "POST",
 			url: "token/new",
-			data: { "token": Token.current, "keys": CreateToken.selectedKeys },
+			data: { "token": Token.current, "keys": CreateToken.selectedKeys, "admin": CreateToken.makeAdmin },
 			deserialize: function(value) {return value}
 		})
 		.then(function(result){

@@ -1,3 +1,5 @@
+import { Keys } from "./Keys.js";
+
 //model
 var Token = {
 	current: sessionStorage.getItem("token"),
@@ -12,6 +14,7 @@ var Token = {
 		.then(function(result){
 			Token.info = result
 			sessionStorage.setItem("tokenInfo", JSON.stringify(result))
+			Keys.getList()
 		})
 		.catch(function(e) {
 			Token.error = e.message
