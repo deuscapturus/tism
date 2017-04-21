@@ -21,5 +21,7 @@ var index = {
 	}
 }
 
-export { index }
-	
+m.route(document.body, "/decrypt", {
+    "/": index,
+    "/:task": index
+})	
