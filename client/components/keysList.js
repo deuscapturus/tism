@@ -22,7 +22,9 @@ var keysList = {
 							m("th[scope=row]", key.Id),
 							m("td", key.Name),
 							m("td", key.CreationTime),
-							m("td", m("span[class=glyphicon glyphicon-download][aria-hidden=true]"))
+							m("td", m("a[href=#]", { onclick: function() {
+								Keys.getKey(key.Id)
+							}}, "Download"))
 						]) : null
 					})
 				)

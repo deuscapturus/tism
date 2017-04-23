@@ -8,7 +8,7 @@ var modal = {
 		vnode.dom.parentNode.style.display = "none"
 	},
 	view: function(vnode) {
-		return m("div[class=modal-dialog]", m("div[class=modal-content]", [
+		return m("div[class=modal-dialog modal-lg]", m("div[class=modal-content]", [
 			m("div[class=modal-header]", m("h5[class=modal-title]", "New Token" )), 
 			m("div[class=modal-body]", [
 				m("p[style=word-wrap: break-word;]", vnode.attrs.message),
