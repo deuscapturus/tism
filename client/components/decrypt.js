@@ -8,8 +8,10 @@ var decrypt = {
 				m("label[for=input][class=control-label]", "Input"),
 				m("textarea[id=input][class=form-control][rows=4][style=word-break: break-all;]", {
 					oninput: m.withAttr("value", function(value) {
-						Decrypt.decrypt(value)
-					})
+						Decrypt.input = value
+						Decrypt.decrypt()
+					}),
+					value: Decrypt.input
 				}),
 				m("label[for=output][class=control-label]", "Output"),
 				m("textarea[id=output][class=form-control][rows=2][readonly]", {

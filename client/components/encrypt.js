@@ -26,8 +26,10 @@ var encrypt = {
 				m("label[for=input]", "Input"),
 				m("textarea[id=input][class=form-control][rows=2]", {
 					oninput: m.withAttr("value", function(value) {
-						Encrypt.encrypt(value, Encrypt.selectedKey)
-					})
+						Encrypt.input = value
+						Encrypt.encrypt()
+					}),
+					value: Encrypt.input
 				}),
 				m("label[for=output]", "Output"),
 				m("textarea[id=output][class=form-control][rows=4][readonly][style=word-break: break-all;]", {

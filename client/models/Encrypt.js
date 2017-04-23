@@ -3,13 +3,14 @@ import { Token } from "./Token.js";
 //model
 var Encrypt = {
 	error: false,
+	input: "",
 	output: "",
 	selectedKey: "",
-	encrypt: function(decsecret, id) {
+	encrypt: function() {
 		return m.request({
 			method: "POST",
 			url: "encrypt",
-			data: { "token": Token.current, "decsecret": decsecret, "id": id },
+			data: { "token": Token.current, "decsecret": Encrypt.input, "id": Encrypt.selectedKey },
 			deserialize: function(value) {return value}
 		})
 		.then(function(result){
