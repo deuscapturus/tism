@@ -1,13 +1,12 @@
 import { Keys } from "./Keys.js";
 import { Token } from "./Token.js";
+import { modal } from "../components/modal.js";
 
 //model
 var CreateKey = {
 	name: "",
 	comment: "",
 	email: "",
-	err: false,
-	errMessage: "",
 	create: function() {
 		return m.request({
 			method: "POST",
@@ -19,7 +18,7 @@ var CreateKey = {
 			Keys.getList()
 		})
 		.catch(function(e) {
-			CreateKey.errMessage(e.message)
+			m.render(document.getElementById("tokenModal"), m(modal, {"message": e.message}))
 			CreateKey.err = true
 		})
 	}

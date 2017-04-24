@@ -20,7 +20,6 @@ var CreateToken = {
 			CreateToken.selectedKeys.push(id)
 		}
 	},
-	err: false,
 	create: function() {
 		return m.request({
 			method: "POST",
@@ -33,8 +32,7 @@ var CreateToken = {
 			CreateToken.err = false
 		})
 		.catch(function(e) {
-			console.log(e.message)
-			CreateToken.err = true
+			m.render(document.getElementById("tokenModal"), m(modal, {"message": e.message}))
 		})
 	}
 }
