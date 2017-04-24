@@ -139,7 +139,7 @@ func Encrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 // ListKeys return json list of keys with metadata including id.
 func ListKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
-	var list []map[string]string
+	list := make([]map[string]string, 0)
 	JsonEncode := json.NewEncoder(w)
 
 	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
