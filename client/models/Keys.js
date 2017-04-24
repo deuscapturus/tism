@@ -42,6 +42,19 @@ var Keys = {
 			m.render(document.getElementById("tokenModal"), m(modal, {"message": e.message}))
 		})
 	},
+	deleteKey: function(id) {
+		return m.request({
+			method: "POST",
+			url: "key/delete",
+			data: { "token": Token.current, "Id": id },
+		})
+		.then(function(result){
+			Keys.getList()
+		})
+		.catch(function(e) {
+			m.render(document.getElementById("tokenModal"), m(modal, {"message": e.message}))
+		})
+	},
 	getList: function() {
 		return m.request({
 			method: "POST",

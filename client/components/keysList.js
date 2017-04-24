@@ -13,7 +13,8 @@ var keysList = {
 						m("td", "ID"),
 						m("td", "Name"),
 						m("td", "Created"),
-						m("td", "Download")
+						m("td", "Download"),
+						m("td", "Delete")
 					])	
 				]),
 				m("tbody", 
@@ -22,9 +23,14 @@ var keysList = {
 							m("th[scope=row]", key.Id),
 							m("td", key.Name),
 							m("td", key.CreationTime),
-							m("td", m("a[href=#]", { onclick: function() {
+							m("td", m("a[href=#]", { onclick: function(e) {
+								e.preventDefault()
 								Keys.getKey(key.Id)
-							}}, "Download"))
+							}}, "Download")),
+							m("td", m("a[href=#]", { onclick: function(e) {
+								e.preventDefault()
+								Keys.deleteKey(key.Id)
+							}}, "Delete"))
 						]) : null
 					})
 				)
