@@ -80,6 +80,7 @@ func IsAdmin(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	if admin >= 1 {
 		return nil, rc
 	}
+	w.WriteHeader(http.StatusUnauthorized)
 	return errors.New("Requestor is not admin"), rc
 }
 
