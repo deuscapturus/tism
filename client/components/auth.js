@@ -12,7 +12,7 @@ var auth = {
 				}),
 				value: Token.current
 			}),
-			m("small[class=form-text text-muted]", (Token.info.admin == 1) ? "Admin" : "Non-Admin", " user - ", (Token.info.keys[0] == "ALL") ? "ALL" : Token.info.keys.length, " Keys Available")
+			m("small[class=form-text text-muted]", Token.adminString, " user - ", Token.numKeys, " Keys Available")
 		])
 	}
 }
