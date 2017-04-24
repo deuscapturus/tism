@@ -28,11 +28,11 @@ var CreateToken = {
 			deserialize: function(value) {return value}
 		})
 		.then(function(result){
-			m.render(document.getElementById("tokenModal"), m(modal, {"message": result}))
+			m.render(document.getElementById("tokenModal"), m(modal, {"message": result, "title": "New Token"}))
 			CreateToken.err = false
 		})
 		.catch(function(e) {
-			m.render(document.getElementById("tokenModal"), m(modal, {"message": e.message}))
+			m.render(document.getElementById("tokenModal"), m(modal, {"message": e.message, "title": "Error"}))
 		})
 	}
 }

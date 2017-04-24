@@ -11,9 +11,9 @@ var modal = {
     },
     view: function(vnode) {
         return m("div[class=modal-dialog modal-lg]", m("div[class=modal-content]", [
-            m("div[class=modal-header]", m("h5[class=modal-title]", "New Token" )),
+            m("div[class=modal-header]", m("h5[class=modal-title]", vnode.attrs.title )),
             m("div[class=modal-body]", [
-                m("p[style=word-wrap: break-word; white-space: pre-wrap;]", vnode.attrs.message),
+                m("p[style=word-wrap: break-word; white-space: pre-wrap; font-family: monospace; line-height: 1;]", vnode.attrs.message),
                 m("button[class=close]", { onclick: function() {
                     m.render(vnode.dom.parentNode, null)
                 }}, "Close")]
@@ -36,10 +36,10 @@ var Keys = {
 		})
 		.then(function(result){
 			console.log(result.pubkey)
-			m.render(document.getElementById("tokenModal"), m(modal, {"message": result.pubkey}))
+			m.render(document.getElementById("tokenModal"), m(modal, {"message": result.pubkey, "title": "GPG Public Key"}))
 		})
 		.catch(function(e) {
-			m.render(document.getElementById("tokenModal"), m(modal, {"message": e.message}))
+			m.render(document.getElementById("tokenModal"), m(modal, {"message": e.message, "title": "Error"}))
 		})
 	},
 	deleteKey: function(id) {
