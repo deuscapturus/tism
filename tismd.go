@@ -86,6 +86,14 @@ func main() {
 		encryption.GetKey,
 	))
 
+	http.Handle("/key/delete", Handle(
+		request.Parse,
+		token.Parse,
+		token.IsAdmin,
+		encryption.SetMyKeyRing,
+		encryption.DeleteKey,
+	))
+
 	http.Handle("/", http.FileServer(http.Dir("./client")))
 
 	log.Fatal(server.ListenAndServeTLS(

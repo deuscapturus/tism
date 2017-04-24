@@ -88,6 +88,18 @@ Get Key by Id
   }' \
   https://localhost:8080/key/get
 
+Delete Key by Id
+----------------
+
+.. code::
+
+  curl -k -H "Content-Type: application/json" -X POST \
+  -d '{
+      "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo",
+      "id" : "13ec80c75c697055"
+  }' \
+  https://localhost:8080/key/delete
+
 Issue a new Token
 -----------------
 

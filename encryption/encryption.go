@@ -197,6 +197,58 @@ func GetKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 }
 
+// DeleteKey deletes a key by id from the system
+func DeleteKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+
+	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
+
+	var req request.Request
+	req = rc.Context().Value("request").(request.Request)
+	EntityId, err := strconv.ParseUint(req.Id, 16, 64)
+	if err != nil {
+		return err, rc
+	}
+
+	// Make sure the key requested for deletion is in the users keyring.
+	ThisKey := MyKeyRing.KeysById(EntityId)
+	if ThisKey == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return errors.New("Key not found in your keyring"), rc
+	}
+
+	for key, entity := range KeyRing.EntityList {
+		if entity.PrimaryKey.KeyId == EntityId {
+
+			var NewKeyRing = MyEntityList{}
+			NewKeyRing.EntityList = append(KeyRing.EntityList[:key], KeyRing.EntityList[key+1:]...)
+
+			f, err := os.OpenFile(config.Config.KeyRingFilePath, os.O_APPEND|os.O_WRONLY|os.O_TRUNC, 0600)
+			if err != nil {
+				log.Println(err)
+				return err, rc
+			}
+			defer f.Close()
+
+			for _, NewEntity := range NewKeyRing.EntityList {
+				NewEntity.SerializePrivate(f, nil)
+				if err != nil {
+					log.Println(err)
+					return err, rc
+				}
+			}
+			log.Println("Deleted Key", req.Id)
+
+			// Reload the Keyring after the key is deleted.
+			defer KeyRing.GetKeyRing()
+			return err, rc
+		}
+
+	}
+
+	return errors.New("Key found in user keyring, but missing in system keyring.  This should never happen"), rc
+
+}
+
 // NewKey will create a new private/public gpg key pair
 // and return the private key id and public key.
 func NewKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
@@ -204,7 +256,7 @@ func NewKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	req = rc.Context().Value("request").(request.Request)
 
 	pgpConfig := &packet.Config{
-		DefaultHash : crypto.SHA256,
+		DefaultHash: crypto.SHA256,
 	}
 
 	NewEntity, err := openpgp.NewEntity(req.Name, req.Comment, req.Email, pgpConfig)
