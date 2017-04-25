@@ -3,73 +3,101 @@
 //import { modal } from "../components/modal.js";
 //component
 var modal = {
-    oncreate: function(vnode) {
-        vnode.dom.parentNode.style.display = "block"
-    },
-    onremove: function(vnode) {
-        vnode.dom.parentNode.style.display = "none"
-    },
-    view: function(vnode) {
-        return m("div[class=modal-dialog modal-lg]", m("div[class=modal-content]", [
-            m("div[class=modal-header]", m("h5[class=modal-title]", vnode.attrs.title )),
-            m("div[class=modal-body]", [
-                m("p[style=word-wrap: break-word; white-space: pre-wrap; font-family: monospace; line-height: 1;]", vnode.attrs.message),
-                m("button[class=close]", { onclick: function() {
-                    m.render(vnode.dom.parentNode, null)
-                }}, "Close")]
-            )]))
-    }
-}
+  oncreate: function(vnode) {
+    vnode.dom.parentNode.style.display = "block";
+  },
+  onremove: function(vnode) {
+    vnode.dom.parentNode.style.display = "none";
+  },
+  view: function(vnode) {
+    return m(
+      "div[class=modal-dialog modal-lg]",
+      m("div[class=modal-content]", [
+        m(
+          "div[class=modal-header]",
+          m("h5[class=modal-title]", vnode.attrs.title)
+        ),
+        m("div[class=modal-body]", [
+          m(
+            "p[style=word-wrap: break-word; white-space: pre-wrap; font-family: monospace; line-height: 1;]",
+            vnode.attrs.message
+          ),
+          m(
+            "button[class=close]",
+            {
+              onclick: function() {
+                m.render(vnode.dom.parentNode, null);
+              }
+            },
+            "Close"
+          )
+        ])
+      ])
+    );
+  }
+};
 // END WORKAROUND
 
 import { Token } from "./Token.js";
 
 //model
 var Keys = {
-	available: [],
-	error: false,
-	getKey: function(id) {
-		return m.request({
-			method: "POST",
-			url: "key/get",
-			data: { "token": Token.current, "Id": id },
-		})
-		.then(function(result){
-			console.log(result.pubkey)
-			m.render(document.getElementById("tokenModal"), m(modal, {"message": result.pubkey, "title": "GPG Public Key"}))
-		})
-		.catch(function(e) {
-			m.render(document.getElementById("tokenModal"), m(modal, {"message": e.message, "title": "Error"}))
-		})
-	},
-	deleteKey: function(id) {
-		return m.request({
-			method: "POST",
-			url: "key/delete",
-			data: { "token": Token.current, "Id": id },
-		})
-		.then(function(result){
-			Keys.getList()
-		})
-		.catch(function(e) {
-			m.render(document.getElementById("tokenModal"), m(modal, {"message": e.message}))
-		})
-	},
-	getList: function() {
-		return m.request({
-			method: "POST",
-			url: "key/list",
-			data: { "token": Token.current },
-		})
-		.then(function(result){
-			Keys.available = result
-			Keys.error = false
-		})
-		.catch(function(e) {
-			console.log(e.message)
-			Keys.error = true
-		})
-	}
-}
+  available: [],
+  error: false,
+  getKey: function(id) {
+    return m
+      .request({
+        method: "POST",
+        url: "key/get",
+        data: { token: Token.current, Id: id }
+      })
+      .then(function(result) {
+        console.log(result.pubkey);
+        m.render(
+          document.getElementById("tokenModal"),
+          m(modal, { message: result.pubkey, title: "GPG Public Key" })
+        );
+      })
+      .catch(function(e) {
+        m.render(
+          document.getElementById("tokenModal"),
+          m(modal, { message: e.message, title: "Error" })
+        );
+      });
+  },
+  deleteKey: function(id) {
+    return m
+      .request({
+        method: "POST",
+        url: "key/delete",
+        data: { token: Token.current, Id: id }
+      })
+      .then(function(result) {
+        Keys.getList();
+      })
+      .catch(function(e) {
+        m.render(
+          document.getElementById("tokenModal"),
+          m(modal, { message: e.message })
+        );
+      });
+  },
+  getList: function() {
+    return m
+      .request({
+        method: "POST",
+        url: "key/list",
+        data: { token: Token.current }
+      })
+      .then(function(result) {
+        Keys.available = result;
+        Keys.error = false;
+      })
+      .catch(function(e) {
+        console.log(e.message);
+        Keys.error = true;
+      });
+  }
+};
 
-export { Keys }
+export { Keys };
