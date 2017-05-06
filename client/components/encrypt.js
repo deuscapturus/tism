@@ -19,6 +19,9 @@ var encrypt = {
                     id: key.Id,
                     oninput: m.withAttr("value", function(value) {
                       Encrypt.selectedKey = value;
+                      if (Encrypt.input != "") {
+                        Encrypt.encrypt();
+                      }
                     })
                   }),
                   key.Name
@@ -26,6 +29,38 @@ var encrypt = {
               ])
             : null;
         })
+      ),
+      m(
+        "div",
+        m(
+          "form",
+          m("div[class=radio]", [
+            m("label", [
+              m("input[type=radio][name=key][class=radio]", {
+                value: "armor",
+                oninput: m.withAttr("value", function(value) {
+                  Encrypt.encoding = value;
+                  if (Encrypt.input != "") {
+                    Encrypt.encrypt();
+                  }
+                })
+              }),
+              "ASCII Armor Encoding"
+            ]),
+            m("label", [
+              m("input[type=radio][name=key][class=radio]", {
+                value: "base64",
+                oninput: m.withAttr("value", function(value) {
+                  Encrypt.encoding = value;
+                  if (Encrypt.input != "") {
+                    Encrypt.encrypt();
+                  }
+                })
+              }),
+              "Base64 Encoding"
+            ])
+          ])
+        )
       ),
       m("div[id=io]", [
         m("label[for=input]", "Input"),

@@ -6,6 +6,7 @@ var Encrypt = {
   input: "",
   output: "",
   selectedKey: "",
+  encoding: "armor",
   encrypt: function() {
     return m
       .request({
@@ -14,7 +15,8 @@ var Encrypt = {
         data: {
           token: Token.current,
           decsecret: Encrypt.input,
-          id: Encrypt.selectedKey
+          id: Encrypt.selectedKey,
+          encoding: Encrypt.encoding
         },
         deserialize: function(value) {
           return value;

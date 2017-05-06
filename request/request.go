@@ -14,6 +14,7 @@ type Request struct {
 	Keys      []string `json:"keys"`
 	Admin     int      `json:"admin"`
 	EncSecret string   `json:"encsecret"`
+	Encoding  string   `json:"encoding"`
 	DecSecret string   `json:"decsecret"`
 	Key       string   `json:"key"`
 	Name      string   `json:"name"`
@@ -21,7 +22,6 @@ type Request struct {
 	Email     string   `json:"email"`
 	Id        string   `json:"id"`
 }
-
 
 // Parse get the json message body and map it to our Request struct.
 // This is the only way to get information from the request body through the middlware chain.  The message body is destroyed after the first read here.

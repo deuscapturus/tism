@@ -13,6 +13,7 @@ import (
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -104,13 +105,38 @@ func Encrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 		return errors.New("Key Id not found in requestors keyring"), rc
 	}
 
+	var Encoding string
+	var EncWriter io.WriteCloser
+	var ArmorWriter io.WriteCloser
 	var ThisKeyEntity []*openpgp.Entity
+	var err error
+
 	ThisKeyEntity = append(ThisKeyEntity, ThisKey[0].Entity)
 
-	buf := new(bytes.Buffer)
-	EncWriter, err := openpgp.Encrypt(buf, ThisKeyEntity, nil, nil, nil)
-	if err != nil {
-		return err, rc
+	buf := bytes.NewBuffer(nil)
+
+	//Set default encoding to base64
+	if req.Encoding == "" || req.Encoding != "armor" {
+		Encoding = "base64"
+	} else {
+		Encoding = req.Encoding
+	}
+
+	if Encoding == "armor" {
+		ArmorWriter, err = armor.Encode(buf, "PGP MESSAGE", nil)
+		if err != nil {
+			return err, rc
+		}
+		EncWriter, err = openpgp.Encrypt(ArmorWriter, ThisKeyEntity, nil, nil, nil)
+		if err != nil {
+			return err, rc
+		}
+
+	} else if Encoding == "base64" {
+		EncWriter, err = openpgp.Encrypt(buf, ThisKeyEntity, nil, nil, nil)
+		if err != nil {
+			return err, rc
+		}
 	}
 
 	_, err = EncWriter.Write([]byte(req.DecSecret))
@@ -118,9 +144,12 @@ func Encrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 		return err, rc
 	}
 
-	err = EncWriter.Close()
-	if err != nil {
-		return err, rc
+	EncWriter.Close()
+
+	w.Header().Set("Content-Type", "text/text")
+
+	if Encoding == "armor" {
+		ArmorWriter.Close()
 	}
 
 	encSecret, err := ioutil.ReadAll(buf)
@@ -128,10 +157,12 @@ func Encrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 		return err, rc
 	}
 
-	base64encSecret := base64.StdEncoding.EncodeToString(encSecret)
-
-	w.Header().Set("Content-Type", "text/text")
-	w.Write([]byte(base64encSecret))
+	if Encoding == "armor" {
+		w.Write([]byte(encSecret))
+	} else if Encoding == "base64" {
+		base64encSecret := base64.StdEncoding.EncodeToString(encSecret)
+		w.Write([]byte(base64encSecret))
+	}
 
 	return nil, rc
 }
