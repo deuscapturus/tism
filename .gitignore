@@ -1,5 +1,6 @@
 gpgkeys/
 cert/
+conf/
 *.swp
 secring.gpg
 config.yaml
