@@ -4,6 +4,40 @@ import { Decrypt } from "../models/Decrypt.js";
 var decrypt = {
   view: function(vnode) {
     return m("div", [
+      m(
+        "div",
+        m(
+          "form",
+          m("div[class=radio]", [
+            m("label", [
+              m("input[type=radio][name=key][class=radio]", {
+                value: "armor",
+                checked: Decrypt.encoding == "armor" ? true : false,
+                oninput: m.withAttr("value", function(value) {
+                  Decrypt.encoding = value;
+                  if (Decrypt.input != "") {
+                    Decrypt.decrypt();
+                  }
+                })
+              }),
+              "ASCII Armor Encoding"
+            ]),
+            m("label", [
+              m("input[type=radio][name=key][class=radio]", {
+                value: "base64",
+                checked: Decrypt.encoding == "base64" ? true : false,
+                oninput: m.withAttr("value", function(value) {
+                  Decrypt.encoding = value;
+                  if (Decrypt.input != "") {
+                    Decrypt.decrypt();
+                  }
+                })
+              }),
+              "Base64 Encoding"
+            ])
+          ])
+        )
+      ),
       m("div[id=io][class=form-group]", [
         m("label[for=input][class=control-label]", "Input"),
         m(

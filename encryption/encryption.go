@@ -65,26 +65,45 @@ func SetMyKeyRing(w http.ResponseWriter, rc http.Request) (error, http.Request) 
 // Decrypt decrypt the given string.
 func Decrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
+	var err error
 	req := rc.Context().Value("request").(request.Request)
 	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
 
-	dec, err := base64.StdEncoding.DecodeString(req.EncSecret)
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return err, rc
+	var Encoding string
+	//Set default encoding to base64
+	if req.Encoding == "" || req.Encoding != "armor" {
+		Encoding = "base64"
+	} else {
+		Encoding = req.Encoding
 	}
 
-	md, err := openpgp.ReadMessage(bytes.NewBuffer(dec), MyKeyRing, nil, nil)
+	var dec io.Reader
+	if Encoding == "armor" {
+		encReader := bytes.NewBufferString(req.EncSecret)
+		encBlock, err := armor.Decode(encReader)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return err, rc
+		}
+
+		dec = encBlock.Body
+	} else if Encoding == "base64" {
+		decBytes, err := base64.StdEncoding.DecodeString(req.EncSecret)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return err, rc
+		}
+		dec = bytes.NewBuffer(decBytes)
+	}
+
+	md, err := openpgp.ReadMessage(dec, MyKeyRing, nil, nil)
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return err, rc
 	}
 
 	message, err := ioutil.ReadAll(md.UnverifiedBody)
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return err, rc
 	}

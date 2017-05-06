@@ -5,12 +5,17 @@ var Decrypt = {
   error: false,
   input: "",
   output: "",
+  encoding: "armor",
   decrypt: function() {
     return m
       .request({
         method: "POST",
         url: "decrypt",
-        data: { token: Token.current, encsecret: Decrypt.input },
+        data: {
+          token: Token.current,
+          encsecret: Decrypt.input,
+          encoding: Decrypt.encoding
+        },
         deserialize: function(value) {
           return value;
         }
