@@ -16,6 +16,7 @@ var encrypt = {
                 m("label", [
                   m("input[type=radio][name=key][class=radio]", {
                     value: key.Id,
+                    checked: Encrypt.selectedKey == key.Id ? true : false,
                     id: key.Id,
                     oninput: m.withAttr("value", function(value) {
                       Encrypt.selectedKey = value;
