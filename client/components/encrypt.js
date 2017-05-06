@@ -38,6 +38,7 @@ var encrypt = {
             m("label", [
               m("input[type=radio][name=key][class=radio]", {
                 value: "armor",
+                checked: Encrypt.encoding == "armor" ? true : false,
                 oninput: m.withAttr("value", function(value) {
                   Encrypt.encoding = value;
                   if (Encrypt.input != "") {
@@ -50,6 +51,7 @@ var encrypt = {
             m("label", [
               m("input[type=radio][name=key][class=radio]", {
                 value: "base64",
+                checked: Encrypt.encoding == "base64" ? true : false,
                 oninput: m.withAttr("value", function(value) {
                   Encrypt.encoding = value;
                   if (Encrypt.input != "") {
