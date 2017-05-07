@@ -4,10 +4,10 @@
 # TLS/SSL Settings.  Leave to default unless you want to provide your own TLS certificate.
 #tls_cert_file: "cert.crt"
 #tls_key_file:  "cert.key"
-#tls_directory: "./cert/"
+tls_directory: "/etc/pki/tls/certs/tism"
 
 # Path to PGP/GPG keyring file.
-keyring_path: "./secring.gpg"
+keyring_path: "/var/lib/tism/secring.gpg"
 
 # token_secret The secret used to sign all JWT tokens.  If this is changed all previosly signed tokens will become invalid.
 token_secret: {{.TokenSecret}}
