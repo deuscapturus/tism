@@ -20,6 +20,7 @@ type Configuration struct {
 	RevokedJWTs     []string `yaml:"revoked_tokens,omitempty"`
 	JWTsecret       string   `yaml:"token_secret,omitempty"`
 	KeyRingFilePath string   `yaml:"keyring_path,omitempty"`
+	WebClientPath   string   `yaml:"web_client_path,omitempty"`
 	GenAdminToken   bool
 	GenCert         bool
 	ConfigPath      string
@@ -43,7 +44,7 @@ func init() {
 // ParseFlags Command line configuration values
 func parseFlags() {
 
-	ConfigPath := flag.String("config", "config.yaml", "Configuration file path.")
+	ConfigPath := flag.String("config", "/etc/tism/config.yaml", "Configuration file path.")
 	GenAdminToken := flag.Bool("t", false, "Generate a super admin token")
 	GenCert := flag.Bool("c", false, "Generate a new TLS certificate. WARNING; WILL OVERWRITE")
 	Port := flag.String("p", "8080", "Port to listen on")
