@@ -1,7 +1,13 @@
 gpgkeys/
 cert/
 conf/
+pkg/rpm/*
+!pkg/rpm/tism.spec
+!pkg/rpm/build.sh
+!tism.service
 *.swp
+*.log
 secring.gpg
 config.yaml
 *.orig
+
