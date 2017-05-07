@@ -1,0 +1,10 @@
+[Service]
+Type=simple
+ExecStart=/usr/bin/tism
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=tism
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target
