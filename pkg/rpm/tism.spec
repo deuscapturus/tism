@@ -11,7 +11,9 @@ BuildRequires:	golang
 %define debug_package %{nil}
 
 %description
+tISM is PGP encryption-as-a-service for secrets management.  Decrypt/Encrypt PGP secrets via REST with token based authorization or web based UI.
 
+tISM solves the immutable infrastructure problem of secrets management.
 
 %prep
 rm -rf %{buildroot}/*
