@@ -94,7 +94,7 @@ func main() {
 		encryption.DeleteKey,
 	))
 
-	http.Handle("/", http.FileServer(http.Dir("./client")))
+	http.Handle("/", http.FileServer(http.Dir(config.Config.WebClientPath)))
 
 	log.Fatal(server.ListenAndServeTLS(
 		config.Config.TLSDir+config.Config.TLSCertFile,
