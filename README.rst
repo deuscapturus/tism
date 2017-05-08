@@ -45,7 +45,7 @@ sudo dnf install https://github.com/deuscapturus/tism/releases/download/0.0/tism
 docker container
 ^^^^^^^^^^^^^^^^
 
-docker run tism/tism
+docker run tism/tism:0.0
 
 Start tismd
 -----------
