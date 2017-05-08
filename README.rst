@@ -1,3 +1,4 @@
+====================================
 tISM - the Immutable Secrets Manager
 ====================================
 
@@ -5,15 +6,15 @@ tISM is PGP encryption-as-a-service for secrets management.  Decrypt/Encrypt PGP
 
 tISM solves the immutable infrastructure problem of secrets management.
 
+.. contents::
+    :local:
+    
 .. WARNING::
 
    Use at your own risk!
 
-.. contents::
-    :local:
-
 Features
---------
+========
 
 * Does not store any secrets.
 * Simple. No databases. The only persistent data is a pgp keyring and configuration file.
@@ -21,7 +22,7 @@ Features
 * Authorization with short lived and revocable JWT tokens.
 
 Security
---------
+========
 
 tISM relies on 3 separated components to access secrets.
 
@@ -81,7 +82,7 @@ or
    systemctl start tism
 
 Web UI  
-------
+======
 
 To use the web ui your browser must have es6 module support enabled (a very new feature).
 
@@ -95,7 +96,7 @@ https://localhost:8080
 .. image:: tism-web-ui.png
 
 REST API
---------
+========
 
 .. code::
 
@@ -105,7 +106,7 @@ REST API
   2016/10/15 10:22:56 written ./cert/cert.key
 
 Create New Encryption Key
-^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 .. code::
 
@@ -119,14 +120,14 @@ Create New Encryption Key
   https://localhost:8080/key/new
 
 Encrypt a Message
-^^^^^^^^^^^^^^^^^
+-----------------
 
 .. code::
 
   echo -n "sdf@34s#atrsdfgjo" | gpg --batch --trust-model always --encrypt -r "it-operations (Production Environment) <it-ops@test.com>" | base64 -w 0
 
 List Keys
-^^^^^^^^^
+---------
 
 .. code::
 
@@ -137,7 +138,7 @@ List Keys
   https://localhost:8080/key/list
 
 Get Key by Id
-^^^^^^^^^^^^^
+
 
 .. code::
 
@@ -149,7 +150,7 @@ Get Key by Id
   https://localhost:8080/key/get
 
 Delete Key by Id
-^^^^^^^^^^^^^^^^
+
 
 .. code::
 
@@ -161,7 +162,7 @@ Delete Key by Id
   https://localhost:8080/key/delete
 
 Issue a new Token
-^^^^^^^^^^^^^^^^^
+
 
 .. code::
 
@@ -173,7 +174,7 @@ Issue a new Token
   https://localhost:8080/token/new
 
 Get Token Info
-^^^^^^^^^^^^^^
+
 
 .. code::
 
@@ -184,7 +185,7 @@ Get Token Info
   https://localhost:8080/token/info
 
 Encrypt a Secret
-^^^^^^^^^^^^^^^^
+----------------
 
 .. code::
 
@@ -198,7 +199,7 @@ Encrypt a Secret
   https://localhost:8080/encrypt
 
 Decrypt a Secret
-^^^^^^^^^^^^^^^^
+----------------
 
 .. code::
 
