@@ -22,10 +22,10 @@ func Generate(n int) string {
 
 func GenerateSecret(size int) string {
 
-	const chars = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789!@#$%^&*"
+	const chars = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789@$%^&*"
 	secret := make([]byte, size)
 	for i := 0; i < size; i++ {
-		secret[i] = chars[rand.Intn(len(chars))]
+		secret[i] = chars[myrand.Intn(len(chars))]
 	}
 
 	return string(secret)
