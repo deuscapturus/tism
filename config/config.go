@@ -22,6 +22,7 @@ type Configuration struct {
 	KeyRingFilePath string   `yaml:"keyring_path,omitempty"`
 	WebClientPath   string   `yaml:"web_client_path,omitempty"`
 	GenAdminToken   bool
+	NoServerStart   bool
 	GenCert         bool
 	ConfigPath      string
 }
@@ -47,6 +48,7 @@ func parseFlags() {
 	ConfigPath := flag.String("config", "/etc/tism/config.yaml", "Configuration file path.")
 	GenAdminToken := flag.Bool("t", false, "Generate a super admin token")
 	GenCert := flag.Bool("c", false, "Generate a new TLS certificate. WARNING; WILL OVERWRITE")
+	NoServerStart := flag.Bool("n", false, "Do not start server.  This is useful for generating tokens and tls certificates")
 	Port := flag.String("p", "8080", "Port to listen on")
 	Address := flag.String("a", "0.0.0.0", "Address to listen on")
 
@@ -54,6 +56,7 @@ func parseFlags() {
 
 	Config.GenAdminToken = *GenAdminToken
 	Config.GenCert = *GenCert
+	Config.NoServerStart = *NoServerStart
 	Config.ConfigPath = *ConfigPath
 	Config.Port = *Port
 	Config.Address = *Address

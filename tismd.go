@@ -33,8 +33,15 @@ func init() {
 	}
 }
 
-// main function.  Start http server and provide routes.
+// main function.
 func main() {
+	if !config.Config.NoServerStart {
+		server()
+	}
+}
+
+// server Start http server and provide routes.
+func server() {
 
 	server := http.Server{
 		Addr:         config.Config.Address + ":" + config.Config.Port,
