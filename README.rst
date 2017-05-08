@@ -58,6 +58,8 @@ Initialize
 
 First generate a TLS cert and admin token
 
+::
+
   tism -t -c -n
 
 `-t` generates a token, `-c` generates the TLS cert, `-n` tells tism to not start the tism server.
@@ -65,14 +67,18 @@ First generate a TLS cert and admin token
 Run
 ^^^
 
+
 Now you are ready to run tism
 
-  tism
+::
+
+   tism
 
 or
 
-  systemctl start tism
+::
 
+   systemctl start tism
 
 Web UI  
 ------
