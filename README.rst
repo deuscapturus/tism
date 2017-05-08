@@ -62,6 +62,9 @@ First generate a TLS cert and admin token
 ::
 
   tism -t -c -n
+  2016/10/15 10:22:55 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiM3QwOGQxN2VxZHVtcCIsImtleXMiOlsiQUxMIl19.bCBGHR8hCfLT5Pb4iek12T-jawPtX0xINbvhmqG9Jzs
+  2016/10/15 10:22:56 written ./cert/cert.crt
+  2016/10/15 10:22:56 written ./cert/cert.key
 
 `-t` generates a token, `-c` generates the TLS cert, `-n` tells tism to not start the tism server.
 
@@ -98,15 +101,8 @@ https://localhost:8080
 REST API
 ========
 
-.. code::
-
-  # go run tismd.go -c -t
-  2016/10/15 10:22:55 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiM3QwOGQxN2VxZHVtcCIsImtleXMiOlsiQUxMIl19.bCBGHR8hCfLT5Pb4iek12T-jawPtX0xINbvhmqG9Jzs
-  2016/10/15 10:22:56 written ./cert/cert.crt
-  2016/10/15 10:22:56 written ./cert/cert.key
-
 Create New Encryption Key
-
+-------------------------
 
 .. code::
 
@@ -138,7 +134,7 @@ List Keys
   https://localhost:8080/key/list
 
 Get Key by Id
-
+-------------
 
 .. code::
 
@@ -150,7 +146,7 @@ Get Key by Id
   https://localhost:8080/key/get
 
 Delete Key by Id
-
+----------------
 
 .. code::
 
@@ -162,7 +158,7 @@ Delete Key by Id
   https://localhost:8080/key/delete
 
 Issue a new Token
-
+-----------------
 
 .. code::
 
@@ -174,7 +170,7 @@ Issue a new Token
   https://localhost:8080/token/new
 
 Get Token Info
-
+--------------
 
 .. code::
 
