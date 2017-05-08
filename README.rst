@@ -87,8 +87,8 @@ To use the web ui your browser must have es6 module support enabled (a very new 
 
 Currently Supported Browers:
 
-  - Firefox 54 or greater with `dom.moduleScripts.enabled`
-  - Safari 10.1 or greater
+- Firefox 54 or greater with `dom.moduleScripts.enabled`
+- Safari 10.1 or greater
 
 https://localhost:8080
 
