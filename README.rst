@@ -9,6 +9,9 @@ tISM solves the immutable infrastructure problem of secrets management.
 
    Use at your own risk!
 
+.. contents::
+    :local:
+
 Features
 --------
 
@@ -50,11 +53,26 @@ docker run tism/tism:0.0
 Start tismd
 -----------
 
-Simply run ``tism`` as root
-Use -t to generate a new admin token
-Use -s to generate a new TLS certificate
+Initialize
+^^^^^^^^^^
 
-When you are ready tism can run as a service ``systemctl start tism``
+First generate a TLS cert and admin token
+
+  tism -t -c -n
+
+`-t` generates a token, `-c` generates the TLS cert, `-n` tells tism to not start the tism server.
+
+Run
+^^^
+
+Now you are ready to run tism
+
+  tism
+
+or
+
+  systemctl start tism
+
 
 Web UI  
 ------
