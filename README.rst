@@ -101,4 +101,6 @@ https://localhost:8080
 API
 ===
 
-[[API.rst]]
+API.rst_
+
+.. _API.rst:
