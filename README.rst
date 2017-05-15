@@ -101,6 +101,4 @@ https://localhost:8080
 API
 ===
 
-API.rst_
-
-.. _API.rst:
+`API Documentation <API.rst>`_
