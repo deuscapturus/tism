@@ -75,7 +75,7 @@ Docker is annoyingly opinionated about forcing immutable containers.  As a resul
 .. code::
 
   #Install
-  docker import https://github.com/deuscapturus/tism/releases/download/0.0/tism-0.0.tgz tism
+  docker import -c 'EXPOSE 8080' https://github.com/deuscapturus/tism/releases/download/0.0/tism-0.0.tgz tism
 
   #Initialize
   docker run --name=tism tism tism -t -c -n
