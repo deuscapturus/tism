@@ -36,53 +36,56 @@ Message Encryption and Decryption is implemented with OpenPGP https://tools.ietf
 Quick Start
 ===========
 
-Installation
-------------
-
-Install rpm or run container image.
-
 RPM
-^^^
+---
 
-sudo dnf install https://github.com/deuscapturus/tism/releases/download/0.0/tism-0.0-1.fc25.x86_64.rpm
+.. code::
 
-docker container
-^^^^^^^^^^^^^^^^
+  #Install
+  sudo dnf install https://github.com/deuscapturus/tism/releases/download/0.0/tism-0.0-1.fc25.x86_64.rpm
+  
+  #Initialize
+  sudo tism -t -c -n
+  
+  #Run
+  sudo systemctl start tism
 
-docker run tism/tism:0.0
+machinectl
+----------
 
-Start tismd
------------
+Run as a container with systemd-nspawn.  systemd-nspawn runs containers and ships with systemd.  So it is available on most Linux distributions without any further setup.
 
-Initialize
-^^^^^^^^^^
+.. code::
 
-First generate a TLS cert and admin token
-
-::
-
-  tism -t -c -n
-  2016/10/15 10:22:55 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiM3QwOGQxN2VxZHVtcCIsImtleXMiOlsiQUxMIl19.bCBGHR8hCfLT5Pb4iek12T-jawPtX0xINbvhmqG9Jzs
-  2016/10/15 10:22:56 written ./cert/cert.crt
-  2016/10/15 10:22:56 written ./cert/cert.key
-
-`-t` generates a token, `-c` generates the TLS cert, `-n` tells tism to not start the tism server.
-
-Run
-^^^
+  #Install
+  sudo machinectl --verify=checksum pull-tar https://github.com/deuscapturus/tism/releases/download/0.0/tism-0.0.tgz
+  
+  #Initialize
+  sudo systemd-nspawn -M tism-0.0 tism -t -c -n
+  
+  #Run
+  sudo systemd-nspawn -M tism-0.0 tism
 
 
-Now you are ready to run tism
+docker
+------
 
-::
+Docker is annoyingly opinionated about forcing immutable containers.  As a result we have one additional step here.
 
-   tism
+.. code::
 
-or
+  #Install
+  docker import https://github.com/deuscapturus/tism/releases/download/0.0/tism-0.0.tgz tism
 
-::
+  #Initialize
+  docker run --name=tism tism tism -t -c -n
 
-   systemctl start tism
+  #Generate new image from initialized container
+  docker commit tism tism:initialized
+
+  #Run
+  docker run -d tism:initialized tism
+  
 
 Web UI  
 ======
