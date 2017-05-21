@@ -29,6 +29,12 @@ func Parse(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	var req = Request{}
 
+	if rc.ContentLength == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("Content-Type", "text/plain")
+		return errors.New("Request body is empty"), rc
+	}
+
 	json := json.NewDecoder(rc.Body)
 
 	err := json.Decode(&req)
