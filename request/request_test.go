@@ -25,27 +25,24 @@ func TestParse(t *testing.T) {
 	res := httptest.NewRecorder()
 
 	// Create http handler.
-	// The middleware function also passes back an error, so we can't use them directly as http.HandlerFunc.  This is a wrapper.
+	// The middleware function also passes back an error, so we can't use it directly as http.HandlerFunc.
+	// This is a wrapper.
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rc := *r.WithContext(r.Context())
 
-		// Function tested below
+		// Test Parse function for errors
 		err, rc := Parse(w, rc)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			t.Fatal(err)
 		}
 
-		// Test updated context
+		// Test that the context was updated.
 		ctx := rc.Context().Value("request").(Request)
+		// Check for Token.  In the future we may want to verify more input values
 		if ctx.Token != token {
 			t.Errorf("Request context not populated with token. Found: %v", ctx.Token)
 		}
 	})
 
 	handler.ServeHTTP(res, req)
-
-	// Check return code.
-	if res.Code != http.StatusOK {
-		t.Error(res.Body)
-	}
 }
