@@ -6,21 +6,23 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 )
 
 // Request put fields for all requests in this struct.
 type Request struct {
-	Token     string   `json:"token"`
-	Keys      []string `json:"keys"`
-	Admin     int      `json:"admin"`
-	EncSecret string   `json:"encsecret"`
-	Encoding  string   `json:"encoding"`
-	DecSecret string   `json:"decsecret"`
-	Key       string   `json:"key"`
-	Name      string   `json:"name"`
-	Comment   string   `json:"comment"`
-	Email     string   `json:"email"`
-	Id        string   `json:"id"`
+	Token      string    `json:"token"`
+	Keys       []string  `json:"keys"`
+	Admin      int       `json:"admin"`
+	EncSecret  string    `json:"encsecret"`
+	Encoding   string    `json:"encoding"`
+	DecSecret  string    `json:"decsecret"`
+	Key        string    `json:"key"`
+	Name       string    `json:"name"`
+	Comment    string    `json:"comment"`
+	Email      string    `json:"email"`
+	Id         string    `json:"id"`
+	Expiration time.Time `json:"expiration"`
 }
 
 // Parse get the json message body and map it to our Request struct.
