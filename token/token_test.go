@@ -5,11 +5,75 @@ import (
 	"context"
 	"github.com/deuscapturus/tism/config"
 	"github.com/deuscapturus/tism/request"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
+	"time"
 )
+
+// TestNew tests the New middleware function.
+func TestNew(t *testing.T) {
+
+	// Variables stub/mock
+	cases := []struct {
+		admin      int
+		keys       []string
+		expiration time.Time
+	}{
+		{1, []string{"ALL"}, time.Now().Add(time.Hour * 30303)},
+	}
+
+	// Set mock settings
+	config.Config.JWTsecret = "12345"
+
+	for _, c := range cases {
+		// Create a stub/mock request with http.NewRequest
+		req, err := http.NewRequest("POST", "/", nil)
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
+		reqContext := request.Request{Expiration: c.expiration, Admin: c.admin, Keys: c.keys}
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, "request", reqContext)
+		ctx = context.WithValue(ctx, "admin", 1)
+		ctx = context.WithValue(ctx, "claims", "ALL")
+		req = req.WithContext(ctx)
+
+		// Create a test response recorder
+		res := httptest.NewRecorder()
+
+		// Create http handler wrapper.
+		// The middleware function returns an error and http.Request,
+		// so we can't use it directly in http.HandlerFunc.
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			// Test Parse function for errors
+			err, _ := New(w, *r)
+			if err != nil {
+				t.Fatalf("%v", err)
+			}
+		})
+
+		handler.ServeHTTP(res, req)
+		//Confirm my jwt values match my case
+		jwtBytes, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
+		token, err := parseToken(string(jwtBytes))
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
+		if token.Claims.(*JwtClaimsMap).Admin != c.admin {
+			t.Errorf("Generated token admin value is not correct.  Expected: %v, Found: %v", c.admin, token.Claims.(*JwtClaimsMap).Admin)
+		}
+		if reflect.DeepEqual(token.Claims.(*JwtClaimsMap).Keys, c.keys) != true {
+			t.Errorf("Generated token keys value is not correct.  Expected: %v, Found: %v", c.keys, token.Claims.(*JwtClaimsMap).Keys)
+		}
+	}
+}
 
 // TestParse tests the Parse middleware function.  Verify http status codes and updated context with user input.
 func TestParse(t *testing.T) {
