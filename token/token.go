@@ -13,6 +13,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
 type JwtClaimsMap struct {
@@ -53,6 +54,12 @@ func Parse(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	if token.Valid {
 		// set scope to string "ALL" in request context if requester has privilege to all keys.
 		// else, set scope to slice of uint64 key ids from the token.
+		if token.Claims.(*JwtClaimsMap).Expiration < time.Now().Unix() {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Header().Set("Content-Type", "text/plain")
+			return errors.New("Token has expired"), rc
+		}
+
 		var context1 context.Context
 		if token.Claims.(*JwtClaimsMap).Keys[0] == "ALL" {
 			context1 = context.WithValue(rc.Context(), "claims", "ALL")
