@@ -13,13 +13,13 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
 )
 
 type JwtClaimsMap struct {
-	Keys  []string `json:"keys"`
-	Admin int      `json:"admin"`
-	JWTid string   `json:"jti"`
+	Keys       []string `json:"keys"`
+	Admin      int      `json:"admin"`
+	JWTid      string   `json:"jti"`
+	Expiration int64    `json:"exp"`
 	jwt.StandardClaims
 }
 
@@ -134,7 +134,7 @@ func New(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 		return errors.New("Permission Denied.  Not an admin token"), rc
 	}
 
-	tokenString, err := GenerateToken(req.Keys, time.Now().Add(time.Hour*30303).Unix(), randid.Generate(32), req.Admin)
+	tokenString, err := GenerateToken(req.Keys, req.Expiration, randid.Generate(32), req.Admin)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
