@@ -22,7 +22,7 @@ func TestNew(t *testing.T) {
 		keys       []string
 		expiration int64
 	}{
-		{1, []string{"ALL"}, time.Now().Add(time.Hour * 30303).Unix()},
+		{1, []string{"ALL"}, 60 * 60 * 1000},
 	}
 
 	// Set mock settings
@@ -72,8 +72,11 @@ func TestNew(t *testing.T) {
 		if reflect.DeepEqual(token.Claims.(*JwtClaimsMap).Keys, c.keys) != true {
 			t.Errorf("Generated token keys value is not correct.  Expected: %v, Found: %v", c.keys, token.Claims.(*JwtClaimsMap).Keys)
 		}
-		if token.Claims.(*JwtClaimsMap).Expiration != c.expiration {
-			t.Errorf("Generated token expiration value is not correct.  Expected: %v, Found: %v", c.expiration, token.Claims.(*JwtClaimsMap).Expiration)
+		tokenExpFound := token.Claims.(*JwtClaimsMap).Expiration
+		tokenExpExpected := time.Now().Unix() + c.expiration
+		t.Logf("tokenExpFound = %v\ntokenExpExpected = %v", tokenExpFound, tokenExpExpected)
+		if tokenExpFound != tokenExpExpected {
+			t.Errorf("Generated token expiration is not correct.  Expected: %v, Found: %v", tokenExpExpected, tokenExpFound)
 		}
 	}
 }

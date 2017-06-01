@@ -141,7 +141,7 @@ func New(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 		return errors.New("Permission Denied.  Not an admin token"), rc
 	}
 
-	tokenString, err := GenerateToken(req.Keys, req.Expiration, randid.Generate(32), req.Admin)
+	tokenString, err := GenerateToken(req.Keys, time.Now().Unix()+req.Expiration, randid.Generate(32), req.Admin)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)

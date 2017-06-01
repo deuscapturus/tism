@@ -5,6 +5,7 @@ import { modal } from "../components/modal.js";
 var CreateToken = {
   selectedKeys: [],
   makeAdmin: 0,
+  expiration: 0,
   toggleAdmin: function(x) {
     if (x) {
       CreateToken.makeAdmin = 1;
@@ -28,6 +29,7 @@ var CreateToken = {
         data: {
           token: Token.current,
           keys: CreateToken.selectedKeys,
+          expiration: parseInt(CreateToken.expiration),
           admin: CreateToken.makeAdmin
         },
         deserialize: function(value) {

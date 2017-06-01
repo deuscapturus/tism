@@ -23,6 +23,20 @@ var tokens = {
           )
         ),
         m(
+          "select[class=custom-select]",
+          {
+            onchange: m.withAttr("value", function(value) {
+              CreateToken.expiration = value;
+            })
+          },
+          m("option", "Token Expiration"),
+          m("option[value=13600]", "1 Hour"),
+          m("option[value=86400]", "1 Day"),
+          m("option[value=604800]", "1 Week"),
+          m("option[value=2629743]", "1 Month"),
+          m("option[value=31556926]", "1 Year")
+        ),
+        m(
           "div[class=checkbox]",
           m(
             "label",
