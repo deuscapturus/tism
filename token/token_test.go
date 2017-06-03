@@ -86,13 +86,14 @@ func TestParse(t *testing.T) {
 
 	// Variables stub/mock
 	cases := []struct {
-		name       string
-		token      string
-		claimstype reflect.Kind
+		name   string
+		admin  bool
+		claims string
+		token  string
 	}{
-		{"ALL-Admin", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiYTA5ZDIydmw1dG83Iiwia2V5cyI6WyJBTEwiXX0.73T6TWAlNcv4Jt_HltjamLgHm0yF0M8XTUaWpgMLwy4", reflect.String},
-		{"Limited-NonAdmin", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MCwiZXhwIjoxNjA0NjkyMDgwLCJqdGkiOiIxbm02MW9pbmEydTdnIiwia2V5cyI6WyI4MTVmOTlmOGY5ZDQzNWUzIiwiMTNlYzgwYzc1YzY5NzA1NSJdfQ.suObIX8YYVL0qCqfT_lmXDSSxTr8IsnXqKDxlnb8GXk", reflect.Slice},
-		{"Limited-Admin", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNjA0NzIwOTM3LCJqdGkiOiJmamphZnF0b2hhaWsiLCJrZXlzIjpbIjgxNWY5OWY4ZjlkNDM1ZTMiLCIxM2VjODBjNzVjNjk3MDU1Il19.WplBDakhsMOp786_NlOmIzWT8-VmXZInJ9jne6qsI40", reflect.Slice},
+		{"ALL-Admin", true, "all", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiYTA5ZDIydmw1dG83Iiwia2V5cyI6WyJBTEwiXX0.73T6TWAlNcv4Jt_HltjamLgHm0yF0M8XTUaWpgMLwy4"},
+		{"Limited-NonAdmin", false, "limited", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MCwiZXhwIjoxNjA0NjkyMDgwLCJqdGkiOiIxbm02MW9pbmEydTdnIiwia2V5cyI6WyI4MTVmOTlmOGY5ZDQzNWUzIiwiMTNlYzgwYzc1YzY5NzA1NSJdfQ.suObIX8YYVL0qCqfT_lmXDSSxTr8IsnXqKDxlnb8GXk"},
+		{"Limited-Admin", true, "limited", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNjA0NzIwOTM3LCJqdGkiOiJmamphZnF0b2hhaWsiLCJrZXlzIjpbIjgxNWY5OWY4ZjlkNDM1ZTMiLCIxM2VjODBjNzVjNjk3MDU1Il19.WplBDakhsMOp786_NlOmIzWT8-VmXZInJ9jne6qsI40"},
 	}
 
 	// Set mock settings
@@ -125,9 +126,34 @@ func TestParse(t *testing.T) {
 			}
 
 			// Test context value against the testing table.
-			Foundtype := reflect.TypeOf(rc.Context().Value("claims")).Kind()
-			if Foundtype != c.claimstype {
-				t.Errorf("%v: Claims context type incorrect.  Expected %v, Found %v", c.name, Foundtype, c.claimstype)
+			Claims := rc.Context().Value("claims").([]string)
+			ClaimsAll := rc.Context().Value("claimsAll").(bool)
+			Admin := rc.Context().Value("admin").(int)
+			if c.admin {
+				if !(Admin > 0) {
+					t.Errorf("admin context is not correct for test '%v'.  Expected: %vto be a number greater than 0", c.name, Admin)
+				}
+			}
+			if !c.admin {
+				if !(Admin <= 0) {
+					t.Errorf("admin context is not correct for test '%v'.  Expected: %vto be a number less than 0", c.name, Admin)
+				}
+			}
+			if c.claims == "all" {
+				if !ClaimsAll {
+					t.Errorf("claimsAll context is not correct for test '%v'.  Expecte: true, Found: %v", c.name, ClaimsAll)
+				}
+				if len(Claims) != 0 {
+					t.Errorf("claims context is not correct for test '%v'.  Expecte: [], Found: %v", c.name, Claims)
+				}
+			}
+			if c.claims == "limited" {
+				if ClaimsAll {
+					t.Errorf("claimsAll context is not correct for test '%v'.  Expecte: false, Found: %v", c.name, ClaimsAll)
+				}
+				if len(Claims) == 0 {
+					t.Errorf("claims context is not correct for test '%v'.  Expecte: slice of key ids, Found: %v", c.name, Claims)
+				}
 			}
 		})
 

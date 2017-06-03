@@ -61,18 +61,23 @@ func Parse(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 		}
 
 		var context1 context.Context
+		var context2 context.Context
+
+		var claims []string
 		if token.Claims.(*JwtClaimsMap).Keys[0] == "ALL" {
-			context1 = context.WithValue(rc.Context(), "claims", "ALL")
-		} else {
-			claims := token.Claims.(*JwtClaimsMap).Keys
 			context1 = context.WithValue(rc.Context(), "claims", claims)
+			context2 = context.WithValue(context1, "claimsAll", true)
+		} else {
+			claims = token.Claims.(*JwtClaimsMap).Keys
+			context1 = context.WithValue(rc.Context(), "claims", claims)
+			context2 = context.WithValue(context1, "claimsAll", false)
 		}
 
 		var admin int
 		admin = token.Claims.(*JwtClaimsMap).Admin
-		context2 := context.WithValue(context1, "admin", admin)
+		context3 := context.WithValue(context2, "admin", admin)
 
-		return nil, *rc.WithContext(context2)
+		return nil, *rc.WithContext(context3)
 	}
 
 	w.WriteHeader(http.StatusUnauthorized)
