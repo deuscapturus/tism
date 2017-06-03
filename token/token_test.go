@@ -166,13 +166,11 @@ func BenchmarkParse(b *testing.B) {
 
 	// Variables stub/mock
 	onecase := struct {
-		name       string
-		token      string
-		claimstype reflect.Kind
+		name  string
+		token string
 	}{
 		"Limited-Admin",
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNjA0NzIwOTM3LCJqdGkiOiJmamphZnF0b2hhaWsiLCJrZXlzIjpbIjgxNWY5OWY4ZjlkNDM1ZTMiLCIxM2VjODBjNzVjNjk3MDU1Il19.WplBDakhsMOp786_NlOmIzWT8-VmXZInJ9jne6qsI40",
-		reflect.Slice,
 	}
 
 	// Set mock settings
