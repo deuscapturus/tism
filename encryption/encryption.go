@@ -40,17 +40,14 @@ func SetMyKeyRing(w http.ResponseWriter, rc http.Request) (error, http.Request) 
 
 	var MyKeyRing openpgp.EntityList
 
-	AuthorizedKeys := rc.Context().Value("claims")
+	AuthorizedKeys := rc.Context().Value("claims").([]string)
+	AuthorizedAllKeys := rc.Context().Value("claimsAll").(bool)
 
-	switch AuthorizedKeys.(type) {
-	case string:
-		if AuthorizedKeys.(string) == "ALL" {
-			MyKeyRing = KeyRing.EntityList
-		}
-	case []string:
+	if AuthorizedAllKeys {
+		MyKeyRing = KeyRing.EntityList
+	} else {
 		// Assemble a new entity list based on the outcome of KeysById
-		keys := AuthorizedKeys.([]string)
-		keysUint64 := stringsToUint64(keys)
+		keysUint64 := stringsToUint64(AuthorizedKeys)
 		for _, keyid := range keysUint64 {
 			for _, thisk := range KeyRing.KeysById(keyid) {
 				MyKeyRing = append(MyKeyRing, thisk.Entity)
