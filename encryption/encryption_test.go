@@ -7,6 +7,7 @@ import (
 	"github.com/deuscapturus/tism/request"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/packet"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -35,7 +36,7 @@ func TestSetMyKeyRing(t *testing.T) {
 		claims  string
 	}{
 		{"test1", "comment1", "test1@tests.test", "limited"},
-		//		{"test2", "comment2", "test2@tests.test", "all"},
+		{"test2", "comment2", "test2@tests.test", "all"},
 	}
 
 	// Create new OpenGPG entity
@@ -166,6 +167,82 @@ func TestEncrypt(t *testing.T) {
 
 			// Test Parse function for errors
 			err, _ := Encrypt(w, *r)
+			if err != nil {
+				t.Fatalf("%v: %v", c.encoding, err)
+			}
+
+		})
+
+		handler.ServeHTTP(res, req)
+
+		if c.encoding == "base64" {
+			body, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				t.Fatalf("%v: %v", c.encoding, err)
+			}
+			testBase64Cipher = string(body)
+		} else if c.encoding == "armor" {
+			body, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				t.Fatalf("%v: %v", c.encoding, err)
+			}
+			testArmorCipher = string(body)
+		}
+
+	}
+
+}
+
+// TestDecrypt tests the Decrypt middleware function.  Verify http status codes validate decrypted text.
+func TestDecrypt(t *testing.T) {
+
+	cases := []struct {
+		cleartext string
+		encoding  string
+	}{
+		{testClearText, "base64"},
+		{testClearText, "armor"},
+	}
+
+	for _, c := range cases {
+
+		// Create a stub/mock request with http.NewRequest
+		req, err := http.NewRequest("POST", "/", nil)
+		if err != nil {
+			t.Fatalf("%v: %v", c.encoding, err)
+		}
+
+		ctx := req.Context()
+
+		MyKeyRing := KeyRing.EntityList
+		ctx = context.WithValue(ctx, "MyKeyRing", MyKeyRing)
+
+		var request = request.Request{}
+		request.Id = strconv.FormatUint(MyKeyRing[0].PrimaryKey.KeyId, 16)
+
+		if c.encoding == "base64" {
+			request.Encoding = "base64"
+			request.EncSecret = testBase64Cipher
+
+		} else if c.encoding == "armor" {
+			request.Encoding = "armor"
+			request.EncSecret = testArmorCipher
+		}
+
+		ctx = context.WithValue(ctx, "request", request)
+
+		req = req.WithContext(ctx)
+
+		// Create a test response recorder
+		res := httptest.NewRecorder()
+
+		// Create http handler wrapper.
+		// The middleware function returns an error and http.Request,
+		// so we can't use it directly in http.HandlerFunc.
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			// Test Parse function for errors
+			err, _ := Decrypt(w, *r)
 			if err != nil {
 				t.Fatalf("%v: %v", c.encoding, err)
 			}
