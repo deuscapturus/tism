@@ -37,9 +37,12 @@ var Config = &Configuration{
 
 // Load configuration at startup
 func init() {
-	parseFlags()
-	renderConfigTemplate()
-	Load()
+	// If this is a test do not load configuration.
+	if flag.Lookup("test.v") == nil {
+		parseFlags()
+		renderConfigTemplate()
+		Load()
+	}
 }
 
 // ParseFlags Command line configuration values
