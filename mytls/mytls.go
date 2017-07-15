@@ -66,6 +66,9 @@ func hosts() []string {
 		hosts = append(hosts, hostname)
 	}
 	ifaces, err := net.Interfaces()
+	if err != nil {
+		log.Fatalf("failed to get network interfaces: %s", err)
+	}
 	for _, i := range ifaces {
 		addrs, err := i.Addrs()
 		if err != nil {
@@ -132,15 +135,15 @@ func Generate(path string) {
 
 	certOut, err := os.Create(config.Config.TLSDir + "/" + config.Config.TLSCertFile)
 	if err != nil {
-		log.Fatalf("failed to open "+config.Config.TLSDir + "/" +config.Config.TLSCertFile+" for writing: %s", err)
+		log.Fatalf("failed to open "+config.Config.TLSDir+"/"+config.Config.TLSCertFile+" for writing: %s", err)
 	}
 	pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	certOut.Close()
 	log.Print("written " + config.Config.TLSDir + "/" + config.Config.TLSCertFile)
 
-	keyOut, err := os.OpenFile(config.Config.TLSDir + "/" + config.Config.TLSKeyFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	keyOut, err := os.OpenFile(config.Config.TLSDir+"/"+config.Config.TLSKeyFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Print("failed to open "+config.Config.TLSDir + "/" + config.Config.TLSKeyFile+"for writing:", err)
+		log.Print("failed to open "+config.Config.TLSDir+"/"+config.Config.TLSKeyFile+"for writing:", err)
 		return
 	}
 	pem.Encode(keyOut, pemBlockForKey(priv))
