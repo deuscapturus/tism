@@ -63,12 +63,12 @@ func Parse(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 		var mycontext context.Context
 
 		var claims []string
+		claims = token.Claims.(*JwtClaimsMap).Keys
+		mycontext = context.WithValue(rc.Context(), "claims", claims)
+
 		if token.Claims.(*JwtClaimsMap).Keys[0] == "ALL" {
-			mycontext = context.WithValue(rc.Context(), "claims", claims)
 			mycontext = context.WithValue(mycontext, "claimsAll", true)
 		} else {
-			claims = token.Claims.(*JwtClaimsMap).Keys
-			mycontext = context.WithValue(rc.Context(), "claims", claims)
 			mycontext = context.WithValue(mycontext, "claimsAll", false)
 		}
 

@@ -143,8 +143,8 @@ func TestParse(t *testing.T) {
 				if !ClaimsAll {
 					t.Errorf("claimsAll context is not correct for test '%v'.  Expecte: true, Found: %v", c.name, ClaimsAll)
 				}
-				if len(Claims) != 0 {
-					t.Errorf("claims context is not correct for test '%v'.  Expecte: [], Found: %v", c.name, Claims)
+				if Claims[0] != "ALL" {
+					t.Errorf("claims context is not correct for test '%v'.  Expecte: [ALL], Found: %v", c.name, Claims)
 				}
 			}
 			if c.claims == "limited" {
