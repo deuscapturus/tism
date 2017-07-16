@@ -20,9 +20,10 @@ func TestNew(t *testing.T) {
 	cases := []struct {
 		admin      int
 		keys       []string
+		claimsAll  bool
 		expiration int64
 	}{
-		{1, []string{"ALL"}, 60 * 60 * 1000},
+		{1, []string{"ALL"}, true, 60 * 60 * 1000},
 	}
 
 	// Set mock settings
@@ -38,7 +39,8 @@ func TestNew(t *testing.T) {
 		ctx := req.Context()
 		ctx = context.WithValue(ctx, "request", reqContext)
 		ctx = context.WithValue(ctx, "admin", 1)
-		ctx = context.WithValue(ctx, "claims", "ALL")
+		ctx = context.WithValue(ctx, "claims", c.keys)
+		ctx = context.WithValue(ctx, "claimsAll", c.claimsAll)
 		req = req.WithContext(ctx)
 
 		// Create a test response recorder

@@ -127,16 +127,12 @@ func New(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	var req request.Request
 	req = rc.Context().Value("request").(request.Request)
 
-	authKeys := rc.Context().Value("claims")
+	authKeys := rc.Context().Value("claims").([]string)
+	authAllKeys := rc.Context().Value("claimsAll").(bool)
+
 	if rc.Context().Value("admin").(int) >= 0 {
-		switch authKeys.(type) {
-		case string:
-			if authKeys.(string) != "ALL" {
-				log.Println("A valid token is not configured correctly.")
-				return errors.New("Permission Denied.  Requested Keys are not in requestors allowed scope"), rc
-			}
-		case []string:
-			if !utils.AllStringsInSlice(req.Keys, rc.Context().Value("claims").([]string)) {
+		if !authAllKeys {
+			if !utils.AllStringsInSlice(req.Keys, authKeys) {
 				log.Println("Requested Keys are not in requestors allowed")
 				return errors.New("Permission Denied.  Requested Keys are not in requestors allowed scope"), rc
 			}
