@@ -2,6 +2,9 @@
 tISM - the Immutable Secrets Manager
 ====================================
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/deuscapturus/tism)](https://goreportcard.com/report/github.com/deuscapturus/tism)
+[![GoDoc](https://godoc.org/github.com/deuscapturus/tism?status.png)](https://godoc.org/github.com/deuscapturus/tism)
+
 tISM is PGP encryption-as-a-service for secrets management.  Decrypt/Encrypt PGP secrets via API with token authorization.
 
 tISM solves the immutable infrastructure problem of secrets management.
