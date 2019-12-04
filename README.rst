@@ -2,6 +2,7 @@
 tISM - the Immutable Secrets Manager
 ====================================
 
+test
 .. image:: https://goreportcard.com/badge/github.com/deuscapturus/tism
    :alt: Go Report Card
    :target: https://goreportcard.com/report/github.com/deuscapturus/tism
