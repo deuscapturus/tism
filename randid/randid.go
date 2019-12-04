@@ -19,3 +19,14 @@ func Generate(n int) string {
 
 	return randomId
 }
+
+func GenerateSecret(size int) string {
+
+	const chars = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789@$%^&*"
+	secret := make([]byte, size)
+	for i := 0; i < size; i++ {
+		secret[i] = chars[myrand.Intn(len(chars))]
+	}
+
+	return string(secret)
+}

@@ -1,10 +1,20 @@
-<!DOCTYPE html>
+<!doctype html>
+<meta charset=utf-8>
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Hello tISM</title>
+    <title>tISM</title>
+	<link rel="stylesheet" href="https://bootswatch.com/4-alpha/pulse/bootstrap.min.css">
+	<link rel="stylesheet" href="css/tism.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="mithril.js"></script>
+    <script type="module" src="components/index.js"></script>
+	<script type="text/javascript">
+		window.onload = function() {
+			if (!document.body.firstElementChild) {
+					alert("This application requires ES6 Modules support in your browser.\n\nSupported Browsers:\n\t- Firefox 54 or greater with `dom.moduleScripts.enabled` = True in about:config\n\t- Safari 10.1 or greater")
+			}
+		}
+	</script>
   </head>
-  <body>
-    <h1>Hello tISM</h1>
-  </body>
 </html>

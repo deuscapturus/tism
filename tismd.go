@@ -13,24 +13,38 @@ import (
 	"net/http"
 )
 
-// main function.  Start http server and provide routes.
-func main() {
-
-	encryption.KeyRing.GetKeyRing()
-
+func init() {
+	// Generate admin token if requested
 	if config.Config.GenAdminToken {
-		adminToken, err := token.GenerateToken([]string{"ALL"}, 99999999999, randid.Generate(32), 1)
+		adminToken, err := token.GenerateToken(
+			[]string{"ALL"},
+			99999999999,
+			randid.Generate(32),
+			1,
+		)
 		if err != nil {
 			log.Println(err)
 		}
 		log.Println(adminToken)
 	}
+	// Generate new TLS cert if requested
 	if config.Config.GenCert {
 		mytls.Generate(config.Config.TLSDir)
 	}
+}
+
+// main function.
+func main() {
+	if !config.Config.NoServerStart {
+		server()
+	}
+}
+
+// server Start http server and provide routes.
+func server() {
 
 	server := http.Server{
-		Addr:         ":" + config.Config.Port,
+		Addr:         config.Config.Address + ":" + config.Config.Port,
 		TLSConfig:    mytls.TLSConfig,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
@@ -47,6 +61,11 @@ func main() {
 		token.Parse,
 		encryption.SetMyKeyRing,
 		encryption.Encrypt,
+	))
+	http.Handle("/token/info", Handle(
+		request.Parse,
+		token.Parse,
+		token.Info,
 	))
 	http.Handle("/token/new", Handle(
 		request.Parse,
@@ -74,11 +93,19 @@ func main() {
 		encryption.GetKey,
 	))
 
-	http.Handle("/", http.FileServer(http.Dir("./client")))
+	http.Handle("/key/delete", Handle(
+		request.Parse,
+		token.Parse,
+		token.IsAdmin,
+		encryption.SetMyKeyRing,
+		encryption.DeleteKey,
+	))
+
+	http.Handle("/", http.FileServer(http.Dir(config.Config.WebClientPath)))
 
 	log.Fatal(server.ListenAndServeTLS(
-		config.Config.TLSDir+config.Config.TLSCertFile,
-		config.Config.TLSDir+config.Config.TLSKeyFile,
+		config.Config.TLSDir+"/"+config.Config.TLSCertFile,
+		config.Config.TLSDir+"/"+config.Config.TLSKeyFile,
 	))
 }
 

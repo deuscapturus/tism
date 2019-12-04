@@ -4,6 +4,7 @@ package encryption
 import (
 	"bytes"
 	"context"
+	"crypto"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -11,6 +12,8 @@ import (
 	"github.com/deuscapturus/tism/request"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
+	"golang.org/x/crypto/openpgp/packet"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -29,21 +32,22 @@ type PublicKey struct {
 
 var KeyRing = MyEntityList{}
 
+func init() {
+	KeyRing.GetKeyRing()
+}
+
 func SetMyKeyRing(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	var MyKeyRing openpgp.EntityList
 
-	AuthorizedKeys := rc.Context().Value("claims")
+	AuthorizedKeys := rc.Context().Value("claims").([]string)
+	AuthorizedAllKeys := rc.Context().Value("claimsAll").(bool)
 
-	switch AuthorizedKeys.(type) {
-	case string:
-		if AuthorizedKeys.(string) == "ALL" {
-			MyKeyRing = KeyRing.EntityList
-		}
-	case []string:
+	if AuthorizedAllKeys {
+		MyKeyRing = KeyRing.EntityList
+	} else {
 		// Assemble a new entity list based on the outcome of KeysById
-		keys := AuthorizedKeys.([]string)
-		keysUint64 := stringsToUint64(keys)
+		keysUint64 := stringsToUint64(AuthorizedKeys)
 		for _, keyid := range keysUint64 {
 			for _, thisk := range KeyRing.KeysById(keyid) {
 				MyKeyRing = append(MyKeyRing, thisk.Entity)
@@ -58,26 +62,45 @@ func SetMyKeyRing(w http.ResponseWriter, rc http.Request) (error, http.Request) 
 // Decrypt decrypt the given string.
 func Decrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
+	var err error
 	req := rc.Context().Value("request").(request.Request)
 	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
 
-	dec, err := base64.StdEncoding.DecodeString(req.EncSecret)
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return err, rc
+	var Encoding string
+	//Set default encoding to base64
+	if req.Encoding == "" || req.Encoding != "armor" {
+		Encoding = "base64"
+	} else {
+		Encoding = req.Encoding
 	}
 
-	md, err := openpgp.ReadMessage(bytes.NewBuffer(dec), MyKeyRing, nil, nil)
+	var dec io.Reader
+	if Encoding == "armor" {
+		encReader := bytes.NewBufferString(req.EncSecret)
+		encBlock, err := armor.Decode(encReader)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return err, rc
+		}
+
+		dec = encBlock.Body
+	} else if Encoding == "base64" {
+		decBytes, err := base64.StdEncoding.DecodeString(req.EncSecret)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return err, rc
+		}
+		dec = bytes.NewBuffer(decBytes)
+	}
+
+	md, err := openpgp.ReadMessage(dec, MyKeyRing, nil, nil)
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return err, rc
 	}
 
 	message, err := ioutil.ReadAll(md.UnverifiedBody)
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return err, rc
 	}
@@ -86,28 +109,76 @@ func Decrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	return nil, rc
 }
 
-// Enctyp encrypt the given string.
+// Encrypt encrypt the given string.
 func Encrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 	req := rc.Context().Value("request").(request.Request)
 	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
 
-	//	RequestId := stringToUint64(req.Id)
-	DecSecret := []byte(req.DecSecret)
+	EntityId := stringToUint64(req.Id)
+	ThisKey := MyKeyRing.KeysById(EntityId)
+	if len(ThisKey) == 0 {
+		return errors.New("Key Id not found in requestors keyring"), rc
+	}
 
-	buf := new(bytes.Buffer)
-	EncWriter, err := openpgp.Encrypt(buf, MyKeyRing, nil, nil, nil)
+	var Encoding string
+	var EncWriter io.WriteCloser
+	var ArmorWriter io.WriteCloser
+	var ThisKeyEntity []*openpgp.Entity
+	var err error
+
+	ThisKeyEntity = append(ThisKeyEntity, ThisKey[0].Entity)
+
+	buf := bytes.NewBuffer(nil)
+
+	//Set default encoding to base64
+	if req.Encoding == "" || req.Encoding != "armor" {
+		Encoding = "base64"
+	} else {
+		Encoding = req.Encoding
+	}
+
+	if Encoding == "armor" {
+		ArmorWriter, err = armor.Encode(buf, "PGP MESSAGE", nil)
+		if err != nil {
+			return err, rc
+		}
+		EncWriter, err = openpgp.Encrypt(ArmorWriter, ThisKeyEntity, nil, nil, nil)
+		if err != nil {
+			return err, rc
+		}
+
+	} else if Encoding == "base64" {
+		EncWriter, err = openpgp.Encrypt(buf, ThisKeyEntity, nil, nil, nil)
+		if err != nil {
+			return err, rc
+		}
+	}
+
+	_, err = EncWriter.Write([]byte(req.DecSecret))
 	if err != nil {
 		return err, rc
 	}
 
-	_, err = EncWriter.Write(DecSecret)
-	if err != nil {
-		return err, rc
-	}
+	EncWriter.Close()
 
 	w.Header().Set("Content-Type", "text/text")
-	w.Write(buf.Bytes())
+
+	if Encoding == "armor" {
+		ArmorWriter.Close()
+	}
+
+	encSecret, err := ioutil.ReadAll(buf)
+	if err != nil {
+		return err, rc
+	}
+
+	if Encoding == "armor" {
+		w.Write([]byte(encSecret))
+	} else if Encoding == "base64" {
+		base64encSecret := base64.StdEncoding.EncodeToString(encSecret)
+		w.Write([]byte(base64encSecret))
+	}
 
 	return nil, rc
 }
@@ -115,10 +186,21 @@ func Encrypt(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 // ListKeys return json list of keys with metadata including id.
 func ListKeys(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
-	var list []map[string]string
+	list := make([]map[string]string, 0)
 	JsonEncode := json.NewEncoder(w)
 
 	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
+
+	AuthorizedKeys := rc.Context().Value("claims")
+
+	switch AuthorizedKeys.(type) {
+	case string:
+		if AuthorizedKeys.(string) == "ALL" {
+			all := make(map[string]string)
+			all["Id"] = "ALL"
+			list = append(list, all)
+		}
+	}
 
 	for _, entity := range MyKeyRing {
 		m := make(map[string]string)
@@ -162,13 +244,69 @@ func GetKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 
 }
 
+// DeleteKey deletes a key by id from the system
+func DeleteKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
+
+	MyKeyRing := rc.Context().Value("MyKeyRing").(openpgp.EntityList)
+
+	var req request.Request
+	req = rc.Context().Value("request").(request.Request)
+	EntityId, err := strconv.ParseUint(req.Id, 16, 64)
+	if err != nil {
+		return err, rc
+	}
+
+	// Make sure the key requested for deletion is in the users keyring.
+	ThisKey := MyKeyRing.KeysById(EntityId)
+	if ThisKey == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return errors.New("Key not found in your keyring"), rc
+	}
+
+	for key, entity := range KeyRing.EntityList {
+		if entity.PrimaryKey.KeyId == EntityId {
+
+			var NewKeyRing = MyEntityList{}
+			NewKeyRing.EntityList = append(KeyRing.EntityList[:key], KeyRing.EntityList[key+1:]...)
+
+			f, err := os.OpenFile(config.Config.KeyRingFilePath, os.O_APPEND|os.O_WRONLY|os.O_TRUNC, 0600)
+			if err != nil {
+				log.Println(err)
+				return err, rc
+			}
+			defer f.Close()
+
+			for _, NewEntity := range NewKeyRing.EntityList {
+				NewEntity.SerializePrivate(f, nil)
+				if err != nil {
+					log.Println(err)
+					return err, rc
+				}
+			}
+			log.Println("Deleted Key", req.Id)
+
+			// Reload the Keyring after the key is deleted.
+			defer KeyRing.GetKeyRing()
+			return err, rc
+		}
+
+	}
+
+	return errors.New("Key found in user keyring, but missing in system keyring.  This should never happen"), rc
+
+}
+
 // NewKey will create a new private/public gpg key pair
 // and return the private key id and public key.
 func NewKey(w http.ResponseWriter, rc http.Request) (error, http.Request) {
 	var req request.Request
 	req = rc.Context().Value("request").(request.Request)
 
-	NewEntity, err := openpgp.NewEntity(req.Name, req.Comment, req.Email, nil)
+	pgpConfig := &packet.Config{
+		DefaultHash: crypto.SHA256,
+	}
+
+	NewEntity, err := openpgp.NewEntity(req.Name, req.Comment, req.Email, pgpConfig)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Header().Set("Content-Type", "text/plain")

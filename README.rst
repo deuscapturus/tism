@@ -1,23 +1,36 @@
+====================================
 tISM - the Immutable Secrets Manager
 ====================================
 
-tISM is a secrets management solution similiar to Hashicorp's Vault.  But unlike Vault, tISM does not store any of your secrets.  Instead secrets are stored in your own build artifact, git repository or configuration as encrypted pgp messages which are decrypted by the tISM Server.
+.. image:: https://goreportcard.com/badge/github.com/deuscapturus/tism
+   :alt: Go Report Card
+   :target: https://goreportcard.com/report/github.com/deuscapturus/tism
+
+.. image:: https://godoc.org/github.com/deuscapturus/tism?status.png
+   :alt: GoDoc
+   :target: https://godoc.org/github.com/deuscapturus/tism
+
+tISM is PGP encryption-as-a-service for secrets management.  Decrypt/Encrypt PGP secrets via API with token authorization.
 
 tISM solves the immutable infrastructure problem of secrets management.
 
+.. contents::
+    :local:
+    
 .. WARNING::
-   tISM is currently in the very early stages of development.  It is not yet ready for any real use.
+
+   Use at your own risk!
 
 Features
---------
+========
 
 * Does not store any secrets.
 * Simple. No databases. The only persistent data is a pgp keyring and configuration file.
-* Asymmetric encryption with secure and ubiquitous PGP/GPG.  Allows secrets to be encrypted with decentralized public keys.
-* Authentication short lived tokens which are also revocable.
+* Asymmetric encryption with secure and ubiquitous PGP/GPG.  Allows secrets to be encrypted with distributed public keys.
+* Authorization with short lived and revocable JWT tokens.
 
 Security
---------
+========
 
 tISM relies on 3 separated components to access secrets.
 
@@ -31,80 +44,72 @@ Message Encryption and Decryption is implemented with OpenPGP https://tools.ietf
 Quick Start
 ===========
 
-Start tismd
------------
-
-Use -t to generate a new admin token
+RPM
+---
 
 .. code::
 
-  # go run tismd.go -t
-  2016/10/09 14:10:19 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjo5OTk5OTk5OTk5OSwianRpIjoiM2I0YmZvc3VrYmV2YiIsImtleXMiOlsiQUxMIl19.kqdOTSybjQm3Je5j5PlRL8yi1hDqb1VrxuVImc7DVfY
+  #Install
+  sudo dnf install https://github.com/deuscapturus/tism/releases/download/0.0/tism-0.0-1.fc25.x86_64.rpm
+  
+  #Initialize
+  sudo tism -t -c -n
+  
+  #Run
+  sudo systemctl start tism
 
-Create New Encryption Key
--------------------------
+machinectl
+----------
 
-.. code::
-
-  curl -k -H "Content-Type: application/json" -X POST \
-  -d '{
-      "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo",
-      "name" : "it-operations",
-      "comment" : "Production Environment",
-      "email" : "it-ops@test.com"
-    }' \
-  https://localhost:8080/key/new
-
-Encrypt a Message
------------------
+Run as a container with systemd-nspawn.  systemd-nspawn runs containers and ships with systemd.  So it is available on most Linux distributions without any further setup.
 
 .. code::
 
-  echo -n "sdf@34s#atrsdfgjo" | gpg --batch --trust-model always --encrypt -r "it-operations (Production Environment) <it-ops@test.com>" | base64 -w 0
+  #Install
+  sudo machinectl --verify=checksum pull-tar https://github.com/deuscapturus/tism/releases/download/0.0/tism-0.0.tgz
+  
+  #Initialize
+  sudo systemd-nspawn -M tism-0.0 tism -t -c -n
+  
+  #Run
+  sudo systemd-nspawn -M tism-0.0 tism
 
-List Keys
----------
 
-.. code::
+docker
+------
 
-  curl -k -s -H "Content-Type: application/json" -X POST \
-  -d '{
-      "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo"
-  }' \
-  https://localhost:8080/key/list
-
-Get Key by Id
--------------
-
-.. code::
-
-  curl -k -H "Content-Type: application/json" -X POST \
-  -d '{
-      "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo",
-      "id" : "13ec80c75c697055"
-  }' \
-  https://localhost:8080/key/get
-
-Issue a new Token
------------------
+Docker is annoyingly opinionated about forcing immutable containers.  As a result we have one additional step here.
 
 .. code::
 
-  curl -k -H "Content-Type: application/json" -X POST \
-  -d '{
-      "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo",
-      "keys" : ["815f99f8f9d435e3","13ec80c75c697055"]
-  }' \
-  https://localhost:8080/token/new
+  #Install
+  docker import -c 'EXPOSE 8080' https://github.com/deuscapturus/tism/releases/download/0.0/tism-0.0.tgz tism
 
-Decrypt a Secret
-----------------
+  #Initialize
+  docker run --name=tism tism tism -t -c -n
 
-.. code::
+  #Generate new image from initialized container
+  docker commit tism tism:initialized
 
-  curl -k -H "Content-Type: application/json" -X POST \
-  -d '{
-      "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6MSwiZXhwIjoxNTg1MTExNDYwLCJqdGkiOiI3NnA5cWNiMWdtdmw4Iiwia2V5cyI6WyJBTEwiXX0.RtAhG6Uorf5xnSf4Ya_GwJnoHkCsql4r1_hiOeDSLzo",
-      "encsecret" : "hQEMAzJ+GfdAB3KqAQf9E3cyvrPEWR1sf1tMvH0nrJ0bZa9kDFLPxvtwAOqlRiNp0F7IpiiVRF+h+sW5Mb4ffB1TElMzQ+/G5ptd6CjmgBfBsuGeajWmvLEi4lC6/9v1rYGjjLeOCCcN4Dl5AHlxUUaSrxB8akTDvSAnPvGhtRTZqDlltl5UEHsyYXM8RaeCrBw5Or1yvC9Ctx2saVp3xmALQvyhzkUv5pTb1mH0I9Z7E0ian07ZUOD+pVacDAf1oQcPpqkeNVTQQ15EP0fDuvnW+a0vxeLhkbFLfnwqhqEsvFxVFLHVLcs2ffE5cceeOMtVo7DS9fCtkdZr5hR7a+86n4hdKfwDMFXiBwSIPMkmY980N/H30L/r50+CBkuI/u4M2pXDcMYsvvt4ajCbJn91qaQ7BDI="
-  }' \
-  https://localhost:8080/decrypt
+  #Run
+  docker run -d tism:initialized tism
+  
+
+Web UI  
+======
+
+To use the web ui your browser must have es6 module support enabled (a very new feature).
+
+Currently Supported Browers:
+
+- Firefox 54 or greater with `dom.moduleScripts.enabled`
+- Safari 10.1 or greater
+
+https://localhost:8080
+
+.. image:: tism-web-ui.png
+
+API
+===
+
+`API Documentation <API.rst>`_
